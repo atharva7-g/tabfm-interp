@@ -9,7 +9,7 @@ import sys
 import importlib
 from tabpfn import TabPFNRegressor
 
-from attention_maps import extract_attention_weights_from_tabpfn, visualize_attention_heads
+from src.attention.attention_maps import extract_attention_weights_from_tabpfn, visualize_attention_heads
 
 def test_attention_extraction():
     """Test the attention extraction functionality."""
