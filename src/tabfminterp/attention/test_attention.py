@@ -5,11 +5,9 @@ Test script for the modified attention extraction function.
 
 import torch
 import numpy as np
-import sys
-import importlib
 from tabpfn import TabPFNRegressor
 
-from src.attention.attention_maps import extract_attention_weights_from_tabpfn, visualize_attention_heads
+from src.tabfminterp.attention.attention_maps import extract_attention_weights_from_tabpfn, visualize_attention_heads
 
 def test_attention_extraction():
     """Test the attention extraction functionality."""
@@ -57,7 +55,7 @@ def test_attention_extraction():
         visualize_attention_heads(
             model=regressor,
             input_data=X_test,  # Use test data for visualization, not training data
-            output_dir='.',
+            output_dir='',
             filename='test_attentions.png',
             device=device,
             sample_idx=0,
