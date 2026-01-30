@@ -8,7 +8,7 @@ import torch
 from sklearn.model_selection import train_test_split
 from tabpfn import TabPFNRegressor
 
-from src.tabfminterp.utils.utils import create_datasets
+from src.utils.utils import create_datasets
 
 
 def logit_lens_accuracy(datasets: List[Tuple[np.ndarray, np.ndarray]]):
