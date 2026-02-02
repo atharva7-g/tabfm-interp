@@ -1,31 +1,42 @@
-from typing import List, Tuple
+from typing import List, Sequence, Tuple, cast
 
 import numpy as np
 import torch
 
-
-def set_seed(seed):
-	"""Set random seeds for reproducibility"""
+def set_seed(seed: int) -> None:
+	"""Set random seeds for reproducibility."""
 	np.random.seed(seed)
 	torch.manual_seed(seed)
 	if torch.cuda.is_available():
 		torch.cuda.manual_seed(seed)
 
 
-def create_dummy_dataset(weights: List[float], num_samples: int = 100, bias: bool = False) -> Tuple[
-	np.ndarray, np.ndarray]:
-	"""Create a dummy dataset with given weights"""
-	X = np.random.randn(num_samples, len(weights))
-	y = X @ weights
-	if bias:
-		y += np.random.randn(num_samples)
-	return X, y
+def create_dummy_dataset(
+		weights: Sequence[float],
+		num_samples: int = 100,
+		bias: bool = False,
+) -> Tuple[np.ndarray, np.ndarray, float]:
+	"""Create a dummy linear dataset with optional bias."""
+	rng = np.random.default_rng()
+
+	X = rng.standard_normal((num_samples, len(weights)))
+	y = X @ np.asarray(weights)
+
+	bias_w = rng.standard_normal() if bias else 0.0
+	y = y + bias_w
+
+	return X, y, bias_w
 
 
-def create_datasets(weights_list: List[List[float]], num_samples: int = 100) -> Tuple[np.ndarray, np.ndarray]:
-	"""Create a list of datasets with given weights"""
-	datasets = []
+def create_datasets(
+		weights_list: Sequence[Sequence[float]],
+		num_samples: int = 100,
+) -> List[Tuple[np.ndarray, np.ndarray]]:
+	"""Create multiple datasets, one per weight vector."""
+	datasets: List[Tuple[np.ndarray, np.ndarray]] = []
+
 	for weights in weights_list:
 		X, y = create_dummy_dataset(weights, num_samples)
 		datasets.append((X, y))
+
 	return datasets

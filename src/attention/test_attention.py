@@ -55,7 +55,7 @@ def test_attention_extraction():
         visualize_attention_heads(
             model=regressor,
             input_data=X_test,  # Use test data for visualization, not training data
-            output_dir='',
+            output_dir='.',
             filename='test_attentions.png',
             device=device,
             sample_idx=0,

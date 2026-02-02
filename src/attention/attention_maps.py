@@ -654,4 +654,3 @@ def demo_attention_visualization():
 
 if __name__ == "__main__":
 	demo_attention_visualization()
-	print("nigga")

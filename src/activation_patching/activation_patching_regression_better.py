@@ -5,7 +5,7 @@ from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
 from tabpfn import TabPFNRegressor
 import torch.nn as nn
-from typing import Any, List, Tuple, Dict
+from typing import List, Tuple, Dict
 
 
 def set_seed(seed: int) -> None:

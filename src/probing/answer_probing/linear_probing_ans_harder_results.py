@@ -1,9 +1,5 @@
-import torch
 import numpy as np
 from sklearn.metrics import mean_squared_error, r2_score
-from sklearn.model_selection import train_test_split
-from tabpfn import TabPFNRegressor
-import torch.nn as nn
 from typing import List, Tuple, Dict
 from sklearn.linear_model import LinearRegression
 import matplotlib.pyplot as plt
@@ -51,8 +47,8 @@ def main():
         # Convert to float64 explicitly to avoid overflow during conversion
         linear_train = activation[:8000, -1, :].detach().cpu().double().numpy()
         linear_test = activation[8000:, -1, :].detach().cpu().double().numpy()
-        # probe target is a + c from X_test (keep TabPFN training target unchanged)
-        probe_target = X_test[:, 0]
+        # WRONG, apparently: probe target is a + c from X_test (keep TabPFN training target unchanged)
+        probe_target = X_test[:, 0] * X_test[:, 1]
         linear_y_train = probe_target[:8000]
         linear_y_test = probe_target[8000:]
 
