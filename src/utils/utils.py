@@ -71,3 +71,23 @@ def create_datasets(
         datasets.append((X, y))
 
     return datasets
+
+def run_with_cache(model, x, filter_fn=None):
+    cache = {}
+    hooks = []
+
+    def save_hook(name):
+        def hook(module, input, output):
+            cache[name] = output.detach()
+        return hook
+
+    for name, module in model.named_modules():
+        if filter_fn is None or filter_fn(name, module):
+            hooks.append(module.register_forward_hook(save_hook(name)))
+
+    out = model(x)
+
+    for h in hooks:
+        h.remove()
+
+    return out, cache

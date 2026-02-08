@@ -1,8 +1,9 @@
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Callable, Dict, List, Optional
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
 from tabpfn import TabPFNRegressor
+from src.utils.shape_inspector import ShapeInspector
 
 
 def create_corrupted_input(
@@ -22,28 +23,37 @@ def create_cache_hook(
     cached_activation: Dict[str, torch.Tensor],
     layer_name: str,
 ) -> Callable:
-    def hook(output):
+    # Create inspector that will print at program exit
+    inspector = ShapeInspector(f"cache_hook_{layer_name}")
+
+    def hook(module, inputs, output):
         if isinstance(output, (tuple, list)):
             output_tensor = output[0]
         else:
             output_tensor = output
+        inspector.record(output_tensor)
         cached_activation[layer_name] = output_tensor.detach().clone()
 
     return hook
 
 
 def create_patch_hook(
-    cached_activation: torch.Tensor,
-    feature_idx: int,
-    sample: int = 3000
+    cached_activation: torch.Tensor, test_sample_idx: int
 ) -> Callable:
-    def hook(output):
+    # Create inspector that will print at program exit
+    inspector = ShapeInspector(f"patch_hook_sample_{test_sample_idx}")
+
+    def hook(module, inputs, output):
         if isinstance(output, (tuple, list)):
             output_tensor = output[0]
         else:
             output_tensor = output
+        inspector.record(output_tensor)
         modified_output = output_tensor.clone()
-        modified_output[:, sample, feature_idx, :] = cached_activation[:, sample, feature_idx, :]
+        # Patch all features at the test sample position with clean cached values
+        modified_output[:, test_sample_idx, :, :] = cached_activation[
+            :, test_sample_idx, :, :
+        ]
         return modified_output
 
     return hook
@@ -54,6 +64,7 @@ def sweep_layers(
     X_clean: np.ndarray,
     X_corrupt: np.ndarray,
     corrupt_idx: int,
+    n_train_samples: int,
     max_layers: Optional[int] = None,
 ) -> List[Dict[str, float]]:
     model = regressor.model_
@@ -64,7 +75,7 @@ def sweep_layers(
     for layer_idx in range(num_layers):
         print(f"Processing layer {layer_idx}/{num_layers - 1}...")
         result = run_single_layer_patching(
-            regressor, X_clean, X_corrupt, corrupt_idx, layer_idx
+            regressor, X_clean, X_corrupt, corrupt_idx, layer_idx, n_train_samples
         )
         results.append(result)
     return results
@@ -76,12 +87,13 @@ def run_single_layer_patching(
     X_corrupt: np.ndarray,
     corrupt_idx: int,
     layer_idx: int,
+    n_train_samples: int,
 ) -> Dict[str, float]:
     model = regressor.model_
     layer_name = f"layer_{layer_idx}"
     cached_activation = {}
     layer = model.transformer_encoder.layers[layer_idx]
-    attention_module = layer.self_attn_between_features
+    attention_module = layer
     cache_hook_fn = create_cache_hook(cached_activation, layer_name)
     cache_handle = attention_module.register_forward_hook(cache_hook_fn)
     with torch.no_grad():
@@ -90,7 +102,10 @@ def run_single_layer_patching(
     clean_activation = cached_activation[layer_name]
     with torch.no_grad():
         y_corrupt = regressor.predict(X_corrupt)
-    patch_hook_fn = create_patch_hook(clean_activation, corrupt_idx)
+    # Use -1 to patch the last item, which is the test sample
+    # (TabPFN prepends 64 thinking tokens, so test sample is at the end)
+    test_sample_idx = -1
+    patch_hook_fn = create_patch_hook(clean_activation, test_sample_idx)
     patch_handle = attention_module.register_forward_hook(patch_hook_fn)
     with torch.no_grad():
         y_patched = regressor.predict(X_corrupt)
@@ -162,6 +177,7 @@ def run_feature_attention_causal_patching_experiment(
     regressor: TabPFNRegressor,
     X_clean: np.ndarray,
     corrupt_idx: int,
+    n_train_samples: int,
     noise_std: float = 1.0,
     noise_seed: int = 42,
     max_layers: Optional[int] = None,
@@ -175,7 +191,9 @@ def run_feature_attention_causal_patching_experiment(
     print(
         f"Corrupted input: a={X_corrupt[0, 0]:.4f}, b={X_corrupt[0, 1]:.4f} (noise), c={X_corrupt[0, 2]:.4f}"
     )
-    results = sweep_layers(regressor, X_clean, X_corrupt, corrupt_idx, max_layers)
+    results = sweep_layers(
+        regressor, X_clean, X_corrupt, corrupt_idx, n_train_samples, max_layers
+    )
     print("\n" + "=" * 60)
     print("CAUSAL PATCHING RESULTS SUMMARY")
     print("=" * 60)
@@ -228,6 +246,7 @@ if __name__ == "__main__":
         regressor=regressor,
         X_clean=X_clean,
         corrupt_idx=1,
+        n_train_samples=len(X_train),
         noise_std=1.0,
         noise_seed=42,
         max_layers=None,
