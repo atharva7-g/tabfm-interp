@@ -4,13 +4,14 @@ import torch
 import matplotlib.pyplot as plt
 from tabpfn import TabPFNRegressor
 from src.utils.model_inspector import ModelInspector, inspect_model
+from src.utils.shape_inspector import ShapeInspector
 
 
 def inspect_regressor_model(
     regressor: TabPFNRegressor,
     name: str = "tabpfn_model",
     max_depth: Optional[int] = None,
-    print_summary: bool = True,
+    print_summary: bool = False,
 ) -> ModelInspector:
     model = regressor.model_
     inspector = ModelInspector(name, max_depth)
@@ -42,6 +43,8 @@ def create_cache_hook(
     cached_activation: Dict[str, torch.Tensor],
     layer_name: str,
 ) -> Callable:
+    inspector = ShapeInspector(f"cache_hook_{layer_name}")
+
     def hook(module, inputs, output):
         if isinstance(output, (tuple, list)):
             output_tensor = output[0]
@@ -53,17 +56,29 @@ def create_cache_hook(
 
 
 def create_patch_hook(
-    cached_activation: torch.Tensor, test_sample_idx: int
+    cached_activation: torch.Tensor, patch_idx: int, patch_dim: int = 2
 ) -> Callable:
+    # patch_dim: 1=tokens (565), 2=attention heads (4)
+    # patch_idx: which token or head to patch
+    dim_size = cached_activation.shape[patch_dim]
+    if patch_idx < 0 or patch_idx >= dim_size:
+        raise ValueError(
+            f"patch_idx must be in range [0, {dim_size - 1}], got {patch_idx}"
+        )
+
+    inspector = ShapeInspector(f"patch_hook_dim{patch_dim}_idx{patch_idx}")
+
     def hook(module, inputs, output):
         if isinstance(output, (tuple, list)):
             output_tensor = output[0]
         else:
             output_tensor = output
+        # inspector.record(output_tensor)
         modified_output = output_tensor.clone()
-        modified_output[:, test_sample_idx, :, :] = cached_activation[
-            :, test_sample_idx, :, :
-        ]
+        if patch_dim == 1:  # Patch token across all heads
+            modified_output[:, patch_idx, :, :] = cached_activation[:, patch_idx, :, :]
+        elif patch_dim == 2:  # Patch head across all tokens
+            modified_output[:, :, patch_idx, :] = cached_activation[:, :, patch_idx, :]
         return modified_output
 
     return hook
@@ -75,8 +90,9 @@ def sweep_layers(
     X_corrupt: np.ndarray,
     corrupt_idx: int,
     n_train_samples: int,
+    patch_idx: int,
+    patch_dim: int = 2,
     max_layers: Optional[int] = None,
-    test_sample_idx: int = -1,
 ) -> List[Dict[str, float]]:
     model = regressor.model_
     total_layers = len(model.transformer_encoder.layers)
@@ -92,7 +108,8 @@ def sweep_layers(
             corrupt_idx,
             layer_idx,
             n_train_samples,
-            test_sample_idx,
+            patch_idx,
+            patch_dim,
         )
         results.append(result)
     return results
@@ -105,7 +122,8 @@ def run_single_layer_patching(
     corrupt_idx: int,
     layer_idx: int,
     n_train_samples: int,
-    test_sample_idx: int = -1,
+    patch_idx: int,
+    patch_dim: int = 2,
 ) -> Dict[str, float]:
     model = regressor.model_
     layer_name = f"layer_{layer_idx}"
@@ -120,7 +138,7 @@ def run_single_layer_patching(
     clean_activation = cached_activation[layer_name]
     with torch.no_grad():
         y_corrupt = regressor.predict(X_corrupt)
-    patch_hook_fn = create_patch_hook(clean_activation, test_sample_idx)
+    patch_hook_fn = create_patch_hook(clean_activation, patch_idx, patch_dim)
     patch_handle = attention_module.register_forward_hook(patch_hook_fn)
     with torch.no_grad():
         y_patched = regressor.predict(X_corrupt)
@@ -193,12 +211,13 @@ def run_feature_attention_causal_patching_experiment(
     X_clean: np.ndarray,
     corrupt_idx: int,
     n_train_samples: int,
+    patch_idx: int,
+    patch_dim: int = 2,
     noise_std: float = 1.0,
     noise_seed: int = 42,
     max_layers: Optional[int] = None,
     plot: bool = True,
     save_path: Optional[str] = None,
-    test_sample_idx: int = -1,
 ) -> List[Dict[str, float]]:
     X_corrupt = create_corrupted_input(X_clean, corrupt_idx, noise_std, noise_seed)
     print(
@@ -213,8 +232,9 @@ def run_feature_attention_causal_patching_experiment(
         X_corrupt,
         corrupt_idx,
         n_train_samples,
+        patch_idx,
+        patch_dim,
         max_layers,
-        test_sample_idx,
     )
     print("\n" + "=" * 60)
     print("CAUSAL PATCHING RESULTS SUMMARY")
@@ -280,6 +300,8 @@ if __name__ == "__main__":
         X_clean=X_clean,
         corrupt_idx=1,
         n_train_samples=len(X_train),
+        patch_idx=0,
+        patch_dim=2,
         noise_std=1.0,
         noise_seed=42,
         max_layers=None,
