@@ -8,3 +8,4 @@ llm/test.py
 
 .venv
 .idea
+/logs/
