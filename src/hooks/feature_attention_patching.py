@@ -1,4 +1,4 @@
-from typing import Callable, Dict, List, Optional, cast
+from typing import Callable, Dict, List, Optional, Union, cast
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
@@ -56,17 +56,28 @@ def create_cache_hook(
 
 
 def create_patch_hook(
-    cached_activation: torch.Tensor, patch_idx: int, patch_dim: int = 2
+    cached_activation: torch.Tensor,
+    patch_indices: Union[int, List[int]],
+    patch_dim: int = 2,
 ) -> Callable:
     # patch_dim: 1=tokens (565), 2=attention heads (4)
-    # patch_idx: which token or head to patch
-    dim_size = cached_activation.shape[patch_dim]
-    if patch_idx < 0 or patch_idx >= dim_size:
-        raise ValueError(
-            f"patch_idx must be in range [0, {dim_size - 1}], got {patch_idx}"
-        )
+    # patch_indices: which token(s) or head(s) to patch (int or list of ints)
 
-    inspector = ShapeInspector(f"patch_hook_dim{patch_dim}_idx{patch_idx}")
+    # Normalize to list for consistent handling
+    if isinstance(patch_indices, int):
+        indices_list = [patch_indices]
+    else:
+        indices_list = list(patch_indices)
+
+    # Validate all indices are within bounds
+    dim_size = cached_activation.shape[patch_dim]
+    for idx in indices_list:
+        if idx < 0 or idx >= dim_size:
+            raise ValueError(
+                f"patch_indices must all be in range [0, {dim_size - 1}], got {idx}"
+            )
+
+    inspector = ShapeInspector(f"patch_hook_dim{patch_dim}_idx{indices_list}")
 
     def hook(module, inputs, output):
         if isinstance(output, (tuple, list)):
@@ -75,10 +86,12 @@ def create_patch_hook(
             output_tensor = output
         # inspector.record(output_tensor)
         modified_output = output_tensor.clone()
-        if patch_dim == 1:  # Patch token across all heads
-            modified_output[:, patch_idx, :, :] = cached_activation[:, patch_idx, :, :]
-        elif patch_dim == 2:  # Patch head across all tokens
-            modified_output[:, :, patch_idx, :] = cached_activation[:, :, patch_idx, :]
+        if patch_dim == 1:  # Patch tokens across all heads
+            for idx in indices_list:
+                modified_output[:, idx, :, :] = cached_activation[:, idx, :, :]
+        elif patch_dim == 2:  # Patch heads across all tokens
+            for idx in indices_list:
+                modified_output[:, :, idx, :] = cached_activation[:, :, idx, :]
         return modified_output
 
     return hook
@@ -90,12 +103,12 @@ def sweep_layers(
     X_corrupt: np.ndarray,
     corrupt_idx: int,
     n_train_samples: int,
-    patch_idx: int,
+    patch_indices: Union[int, List[int]],
     patch_dim: int = 2,
     max_layers: Optional[int] = None,
 ) -> List[Dict[str, float]]:
     model = regressor.model_
-    total_layers = len(model.transformer_encoder.layers)
+    total_layers = len(model.transformer_encoder.layers)  # type: ignore
     num_layers = max_layers if max_layers is not None else total_layers
     num_layers = min(num_layers, total_layers)
     results = []
@@ -108,7 +121,7 @@ def sweep_layers(
             corrupt_idx,
             layer_idx,
             n_train_samples,
-            patch_idx,
+            patch_indices,
             patch_dim,
         )
         results.append(result)
@@ -122,14 +135,14 @@ def run_single_layer_patching(
     corrupt_idx: int,
     layer_idx: int,
     n_train_samples: int,
-    patch_idx: int,
+    patch_indices: Union[int, List[int]],
     patch_dim: int = 2,
 ) -> Dict[str, float]:
     model = regressor.model_
     layer_name = f"layer_{layer_idx}"
     cached_activation = {}
-    layer = model.transformer_encoder.layers[layer_idx]
-    attention_module = layer.self_attn_between_features
+    layer = model.transformer_encoder.layers[layer_idx]  # type: ignore
+    attention_module = layer.self_attn_between_features  # type: ignore
     cache_hook_fn = create_cache_hook(cached_activation, layer_name)
     cache_handle = attention_module.register_forward_hook(cache_hook_fn)
     with torch.no_grad():
@@ -138,7 +151,7 @@ def run_single_layer_patching(
     clean_activation = cached_activation[layer_name]
     with torch.no_grad():
         y_corrupt = regressor.predict(X_corrupt)
-    patch_hook_fn = create_patch_hook(clean_activation, patch_idx, patch_dim)
+    patch_hook_fn = create_patch_hook(clean_activation, patch_indices, patch_dim)
     patch_handle = attention_module.register_forward_hook(patch_hook_fn)
     with torch.no_grad():
         y_patched = regressor.predict(X_corrupt)
@@ -211,7 +224,7 @@ def run_feature_attention_causal_patching_experiment(
     X_clean: np.ndarray,
     corrupt_idx: int,
     n_train_samples: int,
-    patch_idx: int,
+    patch_indices: Union[int, List[int]],
     patch_dim: int = 2,
     noise_std: float = 1.0,
     noise_seed: int = 42,
@@ -232,7 +245,7 @@ def run_feature_attention_causal_patching_experiment(
         X_corrupt,
         corrupt_idx,
         n_train_samples,
-        patch_idx,
+        patch_indices,
         patch_dim,
         max_layers,
     )
@@ -274,10 +287,10 @@ if __name__ == "__main__":
     )
     X_clean = X_test[0:1]
     print(
-        f"\nTest sample: a={X_clean[0, 0]:.4f}, b={X_clean[0, 1]:.4f}, c={X_clean[0, 2]:.4f}"
+        f"\nTest sample: a={X_clean[0, 0]:.4f}, b={X_clean[0, 1]:.4f}, c={X_clean[0, 2]:.4f}"  # type: ignore
     )
     print(
-        f"Expected output (a*b + c): {X_clean[0, 0] * X_clean[0, 1] + X_clean[0, 2]:.4f}"
+        f"Expected output (a*b + c): {X_clean[0, 0] * X_clean[0, 1] + X_clean[0, 2]:.4f}"  # type: ignore
     )
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"\nUsing device: {device}")
@@ -297,10 +310,10 @@ if __name__ == "__main__":
     print("=" * 60)
     results = run_feature_attention_causal_patching_experiment(
         regressor=regressor,
-        X_clean=X_clean,
+        X_clean=X_clean,  # type: ignore
         corrupt_idx=1,
         n_train_samples=len(X_train),
-        patch_idx=0,
+        patch_indices=[0, 1, 2],  # Patch multiple attention heads
         patch_dim=2,
         noise_std=1.0,
         noise_seed=42,

@@ -5,18 +5,6 @@ from tabpfn import TabPFNRegressor
 
 
 class TestLabelTokenVerifier:
-    """
-    Verifies TabPFN model's processing of test label tokens.
-
-    This class computes test-label token indices, attaches verification hooks,
-    runs forward passes, and validates the model's computation matches expectations.
-
-    Success criteria:
-    - Matching token counts
-    - Correct tensor shapes
-    - Expected output values
-    """
-
     def __init__(self, regressor: TabPFNRegressor):
         self.regressor = regressor
         self.model = regressor.model_
@@ -27,22 +15,9 @@ class TestLabelTokenVerifier:
         self, X_test: np.ndarray, expected_num_features: Optional[int] = None
     ) -> int:
         """
-        Compute the index of the test label token in the sequence.
-
-        In TabPFN, the input sequence typically has structure:
+        In TabPFN, the input sequence structure is:
         [train_features..., train_labels..., test_features..., test_label_placeholder]
-
-        The test label token is usually the last token in the sequence.
-
-        Args:
-            X_test: Test input data of shape (num_test_samples, num_features)
-            expected_num_features: Optional expected number of features for validation
-
-        Returns:
-            Index of the test label token (typically -1 for last position)
-
-        Raises:
-            ValueError: If token count doesn't match expectations
+        The test label token is at the last position (index -1).
         """
         num_test_samples = X_test.shape[0]
         num_features = X_test.shape[1]
@@ -71,28 +46,7 @@ class TestLabelTokenVerifier:
         validate_values: bool = True,
         custom_validation_fn: Optional[Callable[[torch.Tensor], bool]] = None,
     ) -> Callable:
-        """
-        Create a hook function for verifying layer outputs.
-
-        Args:
-            layer_name: Name of the layer being hooked
-            expected_shape: Optional expected shape of the output tensor
-            validate_values: Whether to validate output values (check for NaN/Inf)
-            custom_validation_fn: Optional custom validation function
-
-        Returns:
-            Hook function that can be registered with register_forward_hook
-        """
-
         def verification_hook(module, inputs, output):
-            """
-            Hook function that captures and validates layer outputs.
-
-            Args:
-                module: The layer module
-                inputs: Input tensors to the layer
-                output: Output tensor from the layer
-            """
             # Extract the main output tensor
             if isinstance(output, (tuple, list)):
                 output_tensor = output[0]
@@ -114,6 +68,7 @@ class TestLabelTokenVerifier:
                     for i in range(len(expected_shape))
                 )
                 verification_data["shape_matches"] = shape_matches
+                verification_data["expected_shape"] = expected_shape
                 if not shape_matches:
                     verification_data["shape_error"] = (
                         f"Shape mismatch: expected {expected_shape}, got {actual_shape}"
@@ -172,16 +127,6 @@ class TestLabelTokenVerifier:
         validate_values: bool = True,
         custom_validation_fn: Optional[Callable[[torch.Tensor], bool]] = None,
     ) -> None:
-        """
-        Attach verification hooks to model layers.
-
-        Args:
-            target_layers: List of layer names to hook (e.g., ['layer_0', 'layer_1'])
-                          If None, hooks all transformer layers
-            expected_shapes: Dict mapping layer names to expected output shapes
-            validate_values: Whether to validate output values
-            custom_validation_fn: Optional custom validation function
-        """
         # Clear any existing hooks
         self.remove_hooks()
 
@@ -241,20 +186,6 @@ class TestLabelTokenVerifier:
         compute_token_index: bool = True,
         expected_num_features: Optional[int] = None,
     ) -> Dict[str, np.ndarray]:
-        """
-        Run a forward pass with verification hooks attached.
-
-        Args:
-            X_test: Test input data
-            compute_token_index: Whether to compute test label token index
-            expected_num_features: Expected number of features for validation
-
-        Returns:
-            Dictionary containing model predictions and verification results
-
-        Raises:
-            RuntimeError: If verification fails
-        """
         # Compute test label token index if requested
         if compute_token_index:
             self.compute_test_label_token_index(X_test, expected_num_features)
@@ -274,17 +205,6 @@ class TestLabelTokenVerifier:
         return results
 
     def validate_all(self) -> bool:
-        """
-        Validate all verification criteria.
-
-        Success criteria:
-        - Matching token counts
-        - Correct tensor shapes
-        - Expected output values (no NaN/Inf)
-
-        Returns:
-            True if all validations pass, False otherwise
-        """
         all_valid = True
         validation_summary = {
             "token_index_valid": False,
@@ -346,7 +266,6 @@ class TestLabelTokenVerifier:
         return all_valid
 
     def remove_hooks(self) -> None:
-        """Remove all registered hooks from the model."""
         for handle in self.hook_handles:
             handle.remove()
         self.hook_handles = []
@@ -356,13 +275,7 @@ class TestLabelTokenVerifier:
     ) -> Optional[torch.Tensor]:
         """
         Extract activations at the test label token position.
-
-        Args:
-            layer_name: Name of the layer to extract from
-            token_index: Index of the test label token (default: -1 for last position)
-
-        Returns:
-            Activations at the test label token position, or None if not available
+        Assumes output shape is (batch, seq_len, num_heads, hidden_dim).
         """
         if "output_samples" not in self.verification_results:
             return None
@@ -372,15 +285,12 @@ class TestLabelTokenVerifier:
 
         layer_output = self.verification_results["output_samples"][layer_name]
 
-        # Extract activations at the specified token position
-        # Assuming shape is (batch, seq_len, hidden_dim) or similar
         if layer_output.dim() >= 2:
             return layer_output[:, token_index, :]
         else:
             return layer_output
 
     def print_verification_report(self) -> None:
-        """Print a comprehensive verification report."""
         print("\n" + "=" * 60)
         print("TABPFN TEST LABEL TOKEN VERIFICATION REPORT")
         print("=" * 60)
@@ -418,6 +328,8 @@ class TestLabelTokenVerifier:
                 result = layer_results[-1]  # Get most recent result
                 print(f"\n  {layer_name}:")
                 print(f"    Shape: {result.get('output_shape')}")
+                if result.get("expected_shape"):
+                    print(f"    Expected: {result.get('expected_shape')}")
                 print(f"    Device: {result.get('device')}")
                 print(f"    Dtype: {result.get('dtype')}")
                 print(f"    Shape matches: {result.get('shape_matches')}")
@@ -455,7 +367,7 @@ def verify_tabpfn_test_label_processing(
         X_test: Test input data
         expected_num_features: Expected number of features for validation
         target_layers: List of layer names to verify (None = all layers)
-        expected_shapes: Dict mapping layer names to expected shapes
+        expected_shapes: Dict mapping layer names to expected shapes (4D: batch, seq_len, num_heads, hidden_dim)
         verbose: Whether to print verification report
 
     Returns:
@@ -508,26 +420,18 @@ def verify_tabpfn_test_label_processing(
 
 
 def create_shape_expectations(
-    regressor: TabPFNRegressor, batch_size: int, seq_len: int, hidden_dim: int
+    regressor: TabPFNRegressor,
+    batch_size: int,
+    seq_len: int,
+    num_heads: int,
+    hidden_dim: int,
 ) -> Dict[str, Tuple[int, ...]]:
-    """
-    Create expected shape dictionary for layer outputs.
-
-    Args:
-        regressor: TabPFNRegressor instance
-        batch_size: Expected batch size (-1 for any)
-        seq_len: Expected sequence length (-1 for any)
-        hidden_dim: Expected hidden dimension (-1 for any)
-
-    Returns:
-        Dictionary mapping layer names to expected shapes
-    """
     num_layers = len(regressor.model_.transformer_encoder.layers)  # type: ignore
 
     expected_shapes = {}
     for i in range(num_layers):
-        # TabPFN transformer layers typically output (batch, seq_len, hidden_dim)
-        expected_shapes[f"layer_{i}"] = (batch_size, seq_len, hidden_dim)
+        # TabPFN transformer layers output (batch, seq_len, num_heads, hidden_dim)
+        expected_shapes[f"layer_{i}"] = (batch_size, seq_len, num_heads, hidden_dim)
 
     return expected_shapes
 
@@ -551,9 +455,18 @@ if __name__ == "__main__":
     regressor.fit(X_train, y_train)
     print("Model fitted successfully")
 
-    # Run verification
+    # Create expected shapes for verification (4D: batch, seq_len, num_heads, hidden_dim)
+    expected_shapes = create_shape_expectations(
+        regressor, batch_size=-1, seq_len=174, num_heads=4, hidden_dim=192
+    )
+
+    # Run verification with expected shapes
     results = verify_tabpfn_test_label_processing(
-        regressor=regressor, X_test=X_test, expected_num_features=4, verbose=True
+        regressor=regressor,
+        X_test=X_test,
+        expected_num_features=4,
+        expected_shapes=expected_shapes,
+        verbose=True,
     )
 
     print(
