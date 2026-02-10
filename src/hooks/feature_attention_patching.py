@@ -1,4 +1,4 @@
-from typing import Callable, Dict, List, Optional
+from typing import Callable, Dict, List, Optional, cast
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
@@ -287,12 +287,12 @@ if __name__ == "__main__":
     print("\n" + "=" * 60)
     print("Inspecting Model Structure")
     print("=" * 60)
-    inspector = inspect_regressor_model(regressor, max_depth=4)
-    hookable = inspector.get_hookable_modules()
-    print(f"\nFound {len(hookable)} hookable modules")
-    attn_modules = inspector.get_modules_by_type("SelfAttention")
-    print(f"Found {len(attn_modules)} SelfAttention modules")
-    print("\n" + "=" * 60)
+    # # # # inspector = inspect_regressor_model(regressor, max_depth=4)
+    # # # # hookable = inspector.get_hookable_modules()
+    # # # print(f"\nFound {len(hookable)} hookable modules")
+    # # attn_modules = inspector.get_modules_by_type("SelfAttention")
+    # print(f"Found {len(attn_modules)} SelfAttention modules")
+    # print("\n" + "=" * 60)
     print("Running Activation Patching Experiment")
     print("=" * 60)
     results = run_feature_attention_causal_patching_experiment(
