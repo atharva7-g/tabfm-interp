@@ -250,20 +250,21 @@ class AttentionPatchingExperiment(BaseExperiment):
 
         # Build heatmap data
         heatmap_data = np.zeros((num_layers, num_heads))
-        for summary in all_summaries:
+        for i, summary in enumerate(all_summaries):
             head_idx = summary["head_idx"]
             for layer_idx, recovery in zip(
                 summary["layer_indices"], summary["recovery_ratios"]
             ):
-                heatmap_data[layer_idx, head_idx] = (
+                heatmap_data[layer_idx, i] = (
                     recovery * 100
-                )  # Convert to percentage
+                )  # Use column index i, not head_idx
 
         fig, ax = plt.subplots(figsize=(8, 6))
         im = ax.imshow(heatmap_data, cmap="RdYlGn", aspect="auto", vmin=-100, vmax=100)
 
         ax.set_xticks(range(num_heads))
-        ax.set_xticklabels([f"Head {i}" for i in range(num_heads)])
+        head_indices = [s["head_idx"] for s in all_summaries]
+        ax.set_xticklabels([f"Head {h}" for h in head_indices])
         ax.set_yticks(range(num_layers))
         ax.set_yticklabels([f"Layer {i}" for i in range(num_layers)])
         ax.set_xlabel("Attention Head")
