@@ -1,0 +1,157 @@
+{
+  "dataset_type": "multiplication",
+  "corrupt_idx": 1,
+  "noise_std": 1.0,
+  "seed": 42,
+  "n_samples": 1000,
+  "y_clean": 4.117085933685303,
+  "y_corrupt": 1.5201478004455566,
+  "best_layer": 0,
+  "best_recovery": 1.0,
+  "results": [
+    {
+      "y_clean": 4.117085933685303,
+      "y_corrupt": 1.5201478004455566,
+      "y_patched": 4.117085933685303,
+      "restoration": 2.596938133239746,
+      "recovery_ratio": 1.0,
+      "layer_idx": 0
+    },
+    {
+      "y_clean": 4.117085933685303,
+      "y_corrupt": 1.5201478004455566,
+      "y_patched": 4.117085933685303,
+      "restoration": 2.596938133239746,
+      "recovery_ratio": 1.0,
+      "layer_idx": 1
+    },
+    {
+      "y_clean": 4.117085933685303,
+      "y_corrupt": 1.5201478004455566,
+      "y_patched": 4.117085933685303,
+      "restoration": 2.596938133239746,
+      "recovery_ratio": 1.0,
+      "layer_idx": 2
+    },
+    {
+      "y_clean": 4.117085933685303,
+      "y_corrupt": 1.5201478004455566,
+      "y_patched": 4.117085933685303,
+      "restoration": 2.596938133239746,
+      "recovery_ratio": 1.0,
+      "layer_idx": 3
+    },
+    {
+      "y_clean": 4.117085933685303,
+      "y_corrupt": 1.5201478004455566,
+      "y_patched": 4.117085933685303,
+      "restoration": 2.596938133239746,
+      "recovery_ratio": 1.0,
+      "layer_idx": 4
+    },
+    {
+      "y_clean": 4.117085933685303,
+      "y_corrupt": 1.5201478004455566,
+      "y_patched": 4.117085933685303,
+      "restoration": 2.596938133239746,
+      "recovery_ratio": 1.0,
+      "layer_idx": 5
+    },
+    {
+      "y_clean": 4.117085933685303,
+      "y_corrupt": 1.5201478004455566,
+      "y_patched": 4.117085933685303,
+      "restoration": 2.596938133239746,
+      "recovery_ratio": 1.0,
+      "layer_idx": 6
+    },
+    {
+      "y_clean": 4.117085933685303,
+      "y_corrupt": 1.5201478004455566,
+      "y_patched": 4.117085933685303,
+      "restoration": 2.596938133239746,
+      "recovery_ratio": 1.0,
+      "layer_idx": 7
+    },
+    {
+      "y_clean": 4.117085933685303,
+      "y_corrupt": 1.5201478004455566,
+      "y_patched": 4.117085933685303,
+      "restoration": 2.596938133239746,
+      "recovery_ratio": 1.0,
+      "layer_idx": 8
+    },
+    {
+      "y_clean": 4.117085933685303,
+      "y_corrupt": 1.5201478004455566,
+      "y_patched": 4.117085933685303,
+      "restoration": 2.596938133239746,
+      "recovery_ratio": 1.0,
+      "layer_idx": 9
+    },
+    {
+      "y_clean": 4.117085933685303,
+      "y_corrupt": 1.5201478004455566,
+      "y_patched": 4.117085933685303,
+      "restoration": 2.596938133239746,
+      "recovery_ratio": 1.0,
+      "layer_idx": 10
+    },
+    {
+      "y_clean": 4.117085933685303,
+      "y_corrupt": 1.5201478004455566,
+      "y_patched": 4.117085933685303,
+      "restoration": 2.596938133239746,
+      "recovery_ratio": 1.0,
+      "layer_idx": 11
+    },
+    {
+      "y_clean": 4.117085933685303,
+      "y_corrupt": 1.5201478004455566,
+      "y_patched": 4.117085933685303,
+      "restoration": 2.596938133239746,
+      "recovery_ratio": 1.0,
+      "layer_idx": 12
+    },
+    {
+      "y_clean": 4.117085933685303,
+      "y_corrupt": 1.5201478004455566,
+      "y_patched": 4.117085933685303,
+      "restoration": 2.596938133239746,
+      "recovery_ratio": 1.0,
+      "layer_idx": 13
+    },
+    {
+      "y_clean": 4.117085933685303,
+      "y_corrupt": 1.5201478004455566,
+      "y_patched": 4.117085933685303,
+      "restoration": 2.596938133239746,
+      "recovery_ratio": 1.0,
+      "layer_idx": 14
+    },
+    {
+      "y_clean": 4.117085933685303,
+      "y_corrupt": 1.5201478004455566,
+      "y_patched": 4.117085933685303,
+      "restoration": 2.596938133239746,
+      "recovery_ratio": 1.0,
+      "layer_idx": 15
+    },
+    {
+      "y_clean": 4.117085933685303,
+      "y_corrupt": 1.5201478004455566,
+      "y_patched": 4.117085933685303,
+      "restoration": 2.596938133239746,
+      "recovery_ratio": 1.0,
+      "layer_idx": 16
+    },
+    {
+      "y_clean": 4.117085933685303,
+      "y_corrupt": 1.5201478004455566,
+      "y_patched": 4.117085933685303,
+      "restoration": 2.596938133239746,
+      "recovery_ratio": 1.0,
+      "layer_idx": 17
+    }
+  ]
+}
