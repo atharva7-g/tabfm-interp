@@ -58,8 +58,20 @@ def create_cache_hook(
 def create_patch_hook(
     cached_activation: torch.Tensor,
     patch_indices: Union[int, List[int]],
-    patch_dim: int = 2,
+    patch_dim: Optional[int] = None,
 ) -> Callable:
+    """Create a hook function that patches activations from clean to corrupted runs."""
+    if patch_dim is None:
+
+        def full_layer_hook(module, inputs, output):
+            if isinstance(output, (tuple, list)):
+                output_list = [cached_activation.clone()]
+                output_list.extend(output[1:])
+                return tuple(output_list)
+            return cached_activation.clone()
+
+        return full_layer_hook
+
     # patch_dim: 1=tokens (565), 2=attention heads (4)
     # patch_indices: which token(s) or head(s) to patch (int or list of ints)
 
@@ -104,7 +116,7 @@ def sweep_layers(
     corrupt_idx: int,
     n_train_samples: int,
     patch_indices: Union[int, List[int]],
-    patch_dim: int = 2,
+    patch_dim: Optional[int] = 2,
     max_layers: Optional[int] = None,
 ) -> List[Dict[str, float]]:
     model = regressor.model_
@@ -136,7 +148,7 @@ def run_single_layer_patching(
     layer_idx: int,
     n_train_samples: int,
     patch_indices: Union[int, List[int]],
-    patch_dim: int = 2,
+    patch_dim: Optional[int] = 2,
 ) -> Dict[str, float]:
     model = regressor.model_
     layer_name = f"layer_{layer_idx}"
@@ -225,7 +237,7 @@ def run_feature_attention_causal_patching_experiment(
     corrupt_idx: int,
     n_train_samples: int,
     patch_indices: Union[int, List[int]],
-    patch_dim: int = 2,
+    patch_dim: Optional[int] = 2,
     noise_std: float = 1.0,
     noise_seed: int = 42,
     max_layers: Optional[int] = None,

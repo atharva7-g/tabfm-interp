@@ -1,9 +1,6 @@
 {
   "heads": [
-    0,
-    1,
-    2,
-    3
+    1
   ],
   "corrupt_idx": 1,
   "noise_std": 1.0,
@@ -12,5 +9,6 @@
   "test_size": 0.5,
   "output_dir": "src/experiments/hooks/results",
   "device": null,
-  "_saved_at": "20260212_144615"
+  "_saved_at": "20260212_144303",
+  "dataset_type": "multiplication"
 }

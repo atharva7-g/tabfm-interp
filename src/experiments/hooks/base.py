@@ -12,7 +12,7 @@ class ExperimentConfig:
     noise_std: float
     seed: int
     n_train_samples: int
-    patch_dim: int = 2
+    patch_dim: Optional[int] = 2
     max_layers: Optional[int] = None
 
     def to_dict(self):

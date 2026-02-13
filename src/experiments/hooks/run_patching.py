@@ -1,9 +1,4 @@
 #!/usr/bin/env python3
-"""
-Interactive script for running attention head patching experiments.
-
-This script will prompt you for configuration options or use defaults.
-"""
 
 import sys
 from pathlib import Path
@@ -21,23 +16,18 @@ from src.experiments.hooks.config import interactive_config, save_config
 
 
 def main():
-    # Get configuration interactively
     config = interactive_config()
 
     if config is None:
         return
 
-    # Save configuration
     save_config(config)
 
-    # Set seed for reproducibility
     set_seed(config["seed"])
 
-    # Determine device
     device = config["device"] or ("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
 
-    # Create dataset
     print(f"\nDataset: {config['dataset_type']}")
     formula = get_dataset_formula(config["dataset_type"])
     print(f"Formula: {formula}")
@@ -46,7 +36,6 @@ def main():
         config["dataset_type"], num_samples=config["n_samples"], seed=config["seed"]
     )
 
-    # Split data
     from sklearn.model_selection import train_test_split
 
     X_train, X_test, y_train, y_test = train_test_split(
@@ -59,7 +48,6 @@ def main():
         f"Test sample values: a={X_clean[0, 0]:.4f}, b={X_clean[0, 1]:.4f}, c={X_clean[0, 2]:.4f}"
     )
 
-    # Create corrupted input
     X_corrupt = create_corrupted_input(
         X_clean,
         corrupt_idx=config["corrupt_idx"],
@@ -68,7 +56,6 @@ def main():
     )
     print(f"Corrupted input: b={X_corrupt[0, config['corrupt_idx']]:.4f} (noise)")
 
-    # Load TabPFN model
     print("\nLoading TabPFN model...")
     from tabpfn import TabPFNRegressor
 
@@ -76,21 +63,20 @@ def main():
     regressor.fit(X_train, y_train)
     print("Model fitted successfully")
 
-    # Create experiment config
     exp_config = ExperimentConfig(
         corrupt_idx=config["corrupt_idx"],
         noise_std=config["noise_std"],
         seed=config["seed"],
         n_train_samples=len(X_train),
-        patch_dim=2,  # Attention heads
+        patch_dim=2,
     )
 
-    # Create experiment
     script_path = str(Path(__file__).relative_to(Path.cwd()))
+    dataset_output_dir = Path(config["output_dir"]) / config["dataset_type"]
     experiment = AttentionPatchingExperiment(
         regressor=regressor,
         config=exp_config,
-        output_dir=config["output_dir"],
+        output_dir=str(dataset_output_dir),
         script_path=script_path,
     )
 
@@ -98,7 +84,6 @@ def main():
     print("RUNNING ATTENTION HEAD PATCHING EXPERIMENT")
     print("=" * 60)
 
-    # Run patching for each head
     all_summaries = []
     for head_idx in config["heads"]:
         summary, raw_results = experiment.patch_single_head(
@@ -108,20 +93,17 @@ def main():
         )
         all_summaries.append(summary)
 
-        # Save results for this head
         experiment.save_head_results(head_idx, summary, raw_results, script_path)
 
         print(
             f"  Best recovery: {summary['best_recovery'] * 100:.2f}% at layer {summary['best_layer']}"
         )
 
-    # Create comparison plots
     if len(all_summaries) > 1:
         print("\n" + "=" * 60)
         experiment.create_comparison_plot(all_summaries, script_path)
         experiment.create_heatmap(all_summaries, script_path)
 
-    # Print summary
     print("\n" + "=" * 60)
     print("EXPERIMENT SUMMARY")
     print("=" * 60)
@@ -140,7 +122,7 @@ def main():
         f"\nBest head overall: {best_head['head_idx']} ({best_head['best_recovery'] * 100:.2f}% recovery)"
     )
 
-    print(f"\nResults saved to: {config['output_dir']}/")
+    print(f"\nResults saved to: {dataset_output_dir}/")
     print("=" * 60)
 
 

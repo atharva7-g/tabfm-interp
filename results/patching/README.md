@@ -53,6 +53,16 @@ The experiment supports patching along different dimensions:
 - `patch_idx` range: [0, 3]
 - Use case: Test causal importance of specific attention heads
 
+### Dimension None: Full Layer Output
+- Patches the entire layer output (all tokens and all heads)
+- `patch_idx` is ignored when using this mode
+- Use case: Test the causal importance of the complete layer computation
+- **Implementation**: Returns `cached_activation.clone()` to replace the entire layer output tensor
+- **When to use**: 
+  - To establish a baseline maximum restoration achievable by patching any component
+  - When you want to test if information is distributed across the entire layer
+  - When individual head/token patching shows low recovery, suggesting distributed computation
+
 ## Key Functions
 
 ### 1. `create_corrupted_input()`
@@ -73,8 +83,8 @@ Iterates through all transformer layers and runs patching experiment on each.
 - `X_corrupt`: Corrupted input samples
 - `corrupt_idx`: Index of corrupted feature
 - `n_train_samples`: Number of training samples used
-- `patch_idx`: Which token or head to patch (depends on patch_dim)
-- `patch_dim`: Dimension to patch along (1=tokens, 2=heads)
+- `patch_idx`: Which token or head to patch (depends on patch_dim). Ignored when patch_dim=None.
+- `patch_dim`: Dimension to patch along (1=tokens, 2=heads, None=full layer output)
 - `max_layers`: Optional limit on number of layers to test
 
 ### 3. `run_single_layer_patching()`
@@ -105,7 +115,7 @@ Main orchestrator function that runs the complete experiment.
 - `corrupt_idx`: Feature to corrupt
 - `n_train_samples`: Training set size
 - `patch_idx`: Which token/head to patch
-- `patch_dim`: Dimension to patch (1=tokens, 2=heads)
+- `patch_dim`: Dimension to patch (1=tokens, 2=heads, None=full layer output)
 - `noise_std`: Noise level
 - `noise_seed`: Random seed
 - `max_layers`: Limit layers tested
