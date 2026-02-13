@@ -16,6 +16,7 @@ DEFAULT_CONFIG = {
     "test_size": 0.5,
     "output_dir": "src/experiments/hooks/results",
     "device": None,
+    "patch_dim": 2,
 }
 
 PARAM_DESCRIPTIONS = {
@@ -28,6 +29,7 @@ PARAM_DESCRIPTIONS = {
     "test_size": "Test split (0-1)",
     "output_dir": "Output directory",
     "device": "Device (cuda/cpu/auto)",
+    "patch_dim": "Patch dimension: 1=tokens, 2=heads, null=full layer",
 }
 
 
@@ -67,6 +69,11 @@ def parse_input_value(key: str, user_input: str) -> Any:
             return None
         return user_input.lower()
 
+    elif key == "patch_dim":
+        if user_input.lower() in ["null", "none", ""]:
+            return None
+        return int(user_input)
+
     else:
         return user_input
 
@@ -102,6 +109,10 @@ def validate_value(key: str, value: Any) -> tuple[bool, str]:
     elif key == "device":
         if value is not None and value not in ["cuda", "cpu"]:
             return False, "must be 'cuda', 'cpu', or 'auto'"
+
+    elif key == "patch_dim":
+        if value is not None and value not in [1, 2]:
+            return False, "must be 1 (tokens), 2 (heads), or null (full layer)"
 
     return True, ""
 

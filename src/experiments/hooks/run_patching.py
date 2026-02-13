@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import sys
+import argparse
 from pathlib import Path
 import numpy as np
 import torch
@@ -12,11 +13,70 @@ from src.datasets import create_dataset, get_dataset_formula
 from src.experiments.hooks.base import ExperimentConfig
 from src.experiments.hooks.core_patching import create_corrupted_input
 from src.experiments.hooks.attention_patching import AttentionPatchingExperiment
-from src.experiments.hooks.config import interactive_config, save_config
+from src.experiments.hooks.config import (
+    interactive_config,
+    save_config,
+    load_config,
+)
+
+
+def find_default_config():
+    default_paths = [
+        Path("src/experiments/hooks/config.json"),
+    ]
+    for path in default_paths:
+        if path.exists():
+            return str(path)
+    return None
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Run attention head patching experiments for TabPFN"
+    )
+    parser.add_argument(
+        "--config",
+        type=str,
+        help="Path to config JSON file (default: look for config.json in standard locations)",
+    )
+    parser.add_argument(
+        "--interactive",
+        "-i",
+        action="store_true",
+        help="Use interactive configuration mode instead of config file",
+    )
+    return parser.parse_args()
+
+
+def get_config(args):
+    if args.interactive:
+        print("Using interactive configuration mode...")
+        return interactive_config()
+
+    config_path = args.config
+
+    if not config_path:
+        config_path = find_default_config()
+
+    if config_path:
+        print(f"Loading config from: {config_path}")
+        try:
+            return load_config(config_path)
+        except FileNotFoundError:
+            print(f"Error: Config file not found: {config_path}")
+            return None
+        except Exception as e:
+            print(f"Error loading config: {e}")
+            return None
+    else:
+        print("No config file found. Use --interactive for interactive mode.")
+        print("\nOr specify a config file with --config <path>")
+        return None
 
 
 def main():
-    config = interactive_config()
+    args = parse_args()
+    config = get_config(args)
 
     if config is None:
         return
@@ -63,12 +123,13 @@ def main():
     regressor.fit(X_train, y_train)
     print("Model fitted successfully")
 
+    patch_dim = config.get("patch_dim", 2)
     exp_config = ExperimentConfig(
         corrupt_idx=config["corrupt_idx"],
         noise_std=config["noise_std"],
         seed=config["seed"],
         n_train_samples=len(X_train),
-        patch_dim=2,
+        patch_dim=patch_dim,
     )
 
     script_path = str(Path(__file__).relative_to(Path.cwd()))
@@ -85,19 +146,31 @@ def main():
     print("=" * 60)
 
     all_summaries = []
-    for head_idx in config["heads"]:
-        summary, raw_results = experiment.patch_single_head(
-            head_idx=head_idx,
+
+    if patch_dim is None:
+        summary, raw_results = experiment.patch_full_layer(
             X_clean=X_clean,
             X_corrupt=X_corrupt,
         )
         all_summaries.append(summary)
-
-        experiment.save_head_results(head_idx, summary, raw_results, script_path)
-
+        experiment.save_full_layer_results(summary, raw_results, script_path)
         print(
             f"  Best recovery: {summary['best_recovery'] * 100:.2f}% at layer {summary['best_layer']}"
         )
+    else:
+        for head_idx in config["heads"]:
+            summary, raw_results = experiment.patch_single_head(
+                head_idx=head_idx,
+                X_clean=X_clean,
+                X_corrupt=X_corrupt,
+            )
+            all_summaries.append(summary)
+
+            experiment.save_head_results(head_idx, summary, raw_results, script_path)
+
+            print(
+                f"  Best recovery: {summary['best_recovery'] * 100:.2f}% at layer {summary['best_layer']}"
+            )
 
     if len(all_summaries) > 1:
         print("\n" + "=" * 60)
@@ -109,18 +182,30 @@ def main():
     print("=" * 60)
     print(f"\nClean output: {all_summaries[0]['y_clean']:.6f}")
     print(f"Corrupted output: {all_summaries[0]['y_corrupt']:.6f}")
-    print(f"\nHead-by-head results:")
-    print(f"{'Head':<8} {'Best Recovery':<15} {'Best Layer':<12}")
-    print("-" * 35)
-    for summary in all_summaries:
-        print(
-            f"{summary['head_idx']:<8} {summary['best_recovery'] * 100:<15.2f}% {summary['best_layer']:<12}"
-        )
 
-    best_head = max(all_summaries, key=lambda x: x["best_recovery"])
-    print(
-        f"\nBest head overall: {best_head['head_idx']} ({best_head['best_recovery'] * 100:.2f}% recovery)"
-    )
+    if patch_dim is None:
+        print(f"\nFull layer patching results:")
+        print(f"{'Layer':<8} {'Best Recovery':<15}")
+        print("-" * 25)
+        print(
+            f"{all_summaries[0]['best_layer']:<8} {all_summaries[0]['best_recovery'] * 100:<15.2f}%"
+        )
+        print(
+            f"\nBest layer overall: {all_summaries[0]['best_layer']} ({all_summaries[0]['best_recovery'] * 100:.2f}% recovery)"
+        )
+    else:
+        print(f"\nHead-by-head results:")
+        print(f"{'Head':<8} {'Best Recovery':<15} {'Best Layer':<12}")
+        print("-" * 35)
+        for summary in all_summaries:
+            print(
+                f"{summary['head_idx']:<8} {summary['best_recovery'] * 100:<15.2f}% {summary['best_layer']:<12}"
+            )
+
+        best_head = max(all_summaries, key=lambda x: x["best_recovery"])
+        print(
+            f"\nBest head overall: {best_head['head_idx']} ({best_head['best_recovery'] * 100:.2f}% recovery)"
+        )
 
     print(f"\nResults saved to: {dataset_output_dir}/")
     print("=" * 60)

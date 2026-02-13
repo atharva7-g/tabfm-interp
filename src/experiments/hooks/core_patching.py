@@ -63,6 +63,7 @@ def create_patch_hook(
     """Create a hook function that patches activations from clean to corrupted runs."""
     if patch_dim is None:
 
+        print("Patch dimension is null. Patching full layer.")
         def full_layer_hook(module, inputs, output):
             if isinstance(output, (tuple, list)):
                 output_list = [cached_activation.clone()]
