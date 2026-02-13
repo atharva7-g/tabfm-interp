@@ -9,5 +9,4 @@ llm/test.py
 .venv
 .idea
 /logs/
-/src/experiments/hooks/results/multiplication/tensors/
-/src/experiments/hooks/results/quadratic/tensors/
+/src/experiments/hooks/results/
