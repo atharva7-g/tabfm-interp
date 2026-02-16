@@ -14,7 +14,7 @@ from src.utils.utils import get_project_root
 
 OUTPUT_DIR = Path(
     os.path.join(
-        get_project_root(), "src", "experiments", "hooks", "results", "multiplication"
+        get_project_root(), "src", "experiments", "full_layer_patching", "output"
     )
 )
 CONFIG_DIR = Path(os.path.join(get_project_root(), "src", "experiments", "hooks"))
