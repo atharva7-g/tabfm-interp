@@ -8,7 +8,7 @@ import torch
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from src.utils.utils import set_seed
+from src.utils.utils import set_seed, get_project_root
 from src.datasets import create_dataset, get_dataset_formula
 from src.experiments.hooks.base import ExperimentConfig
 from src.experiments.hooks.core_patching import create_corrupted_input
@@ -22,7 +22,7 @@ from src.experiments.hooks.config import (
 
 def find_default_config():
     default_paths = [
-        Path("src/experiments/hooks/config.json"),
+        Path(f"{get_project_root()}/src/experiments/hooks/config.json"),
     ]
     for path in default_paths:
         if path.exists():

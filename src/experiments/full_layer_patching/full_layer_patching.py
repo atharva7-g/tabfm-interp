@@ -1,4 +1,3 @@
-import sys
 from pathlib import Path
 import numpy as np
 import torch
@@ -64,7 +63,7 @@ def run_single_layer_patching(
     layer_name = f"layer_{layer_idx}"
     cached_activation = {}
     layer = model.transformer_encoder.layers[layer_idx]
-    attention_module = layer.self_attn_between_features
+    attention_module = layer.self_attn_between_items
     cache_hook_fn = create_cache_hook(cached_activation, layer_name)
     cache_handle = attention_module.register_forward_hook(cache_hook_fn)
     with torch.no_grad():

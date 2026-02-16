@@ -1,7 +1,16 @@
+from pathlib import Path
 from typing import List, Sequence, Tuple, cast
 
 import numpy as np
 import torch
+
+
+def get_project_root() -> Path:
+    current = Path(__file__).resolve()
+    for parent in current.parents:
+        if (parent / ".git").exists() or (parent / "pyproject.toml").exists():
+            return parent
+    return current.parents[-1]
 
 
 def set_seed(seed: int) -> None:
@@ -72,6 +81,7 @@ def create_datasets(
 
     return datasets
 
+
 def run_with_cache(model, x, filter_fn=None):
     cache = {}
     hooks = []
@@ -79,6 +89,7 @@ def run_with_cache(model, x, filter_fn=None):
     def save_hook(name):
         def hook(module, input, output):
             cache[name] = output.detach()
+
         return hook
 
     for name, module in model.named_modules():
