@@ -17,6 +17,8 @@ from src.experiments.hooks.config import (
     save_config,
     load_config,
 )
+from src.tracking import AimExperimentTracker
+from tabpfn import TabPFNRegressor
 
 
 def find_default_config():
@@ -80,9 +82,14 @@ def main():
     if config is None:
         return
 
-    save_config(config)
+    with AimExperimentTracker(
+        experiment_name="attention-patching",
+        tags=[config["dataset_type"], f"corrupt_{config['corrupt_idx']}"],
+    ) as tracker:
+        save_config(config)
+        tracker.log_params(config)
 
-    set_seed(config["seed"])
+        set_seed(config["seed"])
 
     device = config["device"] or ("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
@@ -116,7 +123,6 @@ def main():
     print(f"Corrupted input: b={X_corrupt[0, config['corrupt_idx']]:.4f} (noise)")
 
     print("\nLoading TabPFN model...")
-    from tabpfn import TabPFNRegressor
 
     regressor = TabPFNRegressor(device=device, n_estimators=1)
     regressor.fit(X_train, y_train)
@@ -153,6 +159,14 @@ def main():
         )
         all_summaries.append(summary)
         experiment.save_full_layer_results(summary, raw_results, script_path)
+
+        best_idx = summary["layer_indices"].index(summary["best_layer"])
+        tracker.log_patching_layer(
+            layer_idx=summary["best_layer"],
+            restoration=summary["restorations"][best_idx],
+            recovery_ratio=summary["best_recovery"],
+        )
+
         print(
             f"  Best recovery: {summary['best_recovery'] * 100:.2f}% at layer {summary['best_layer']}"
         )
@@ -166,6 +180,14 @@ def main():
             all_summaries.append(summary)
 
             experiment.save_head_results(head_idx, summary, raw_results, script_path)
+
+            best_idx = summary["layer_indices"].index(summary["best_layer"])
+            tracker.log_patching_layer(
+                layer_idx=summary["best_layer"],
+                restoration=summary["restorations"][best_idx],
+                recovery_ratio=summary["best_recovery"],
+                head_idx=head_idx,
+            )
 
             print(
                 f"  Best recovery: {summary['best_recovery'] * 100:.2f}% at layer {summary['best_layer']}"
@@ -204,6 +226,38 @@ def main():
         best_head = max(all_summaries, key=lambda x: x["best_recovery"])
         print(
             f"\nBest head overall: {best_head['head_idx']} ({best_head['best_recovery'] * 100:.2f}% recovery)"
+        )
+
+    artifact_paths = []
+    if len(all_summaries) > 1:
+        comparison_plot = dataset_output_dir / "recovery_comparison.png"
+        heatmap_plot = dataset_output_dir / "recovery_heatmap.png"
+        if comparison_plot.exists():
+            artifact_paths.append(comparison_plot)
+        if heatmap_plot.exists():
+            artifact_paths.append(heatmap_plot)
+
+    if artifact_paths:
+        tracker.log_artifacts(artifact_paths)
+
+    if patch_dim is None:
+        tracker.log_summary(
+            y_clean=all_summaries[0]["y_clean"],
+            y_corrupt=all_summaries[0]["y_corrupt"],
+            best_recovery=all_summaries[0]["best_recovery"],
+            best_layer=all_summaries[0]["best_layer"],
+            patch_type="full_layer",
+        )
+    else:
+        best_overall = max(all_summaries, key=lambda x: x["best_recovery"])
+        tracker.log_summary(
+            y_clean=all_summaries[0]["y_clean"],
+            y_corrupt=all_summaries[0]["y_corrupt"],
+            best_recovery=best_overall["best_recovery"],
+            best_layer=best_overall["best_layer"],
+            best_head=best_overall["head_idx"],
+            heads_tested=len(config["heads"]),
+            patch_type="attention_heads",
         )
 
     print(f"\nResults saved to: {dataset_output_dir}/")
