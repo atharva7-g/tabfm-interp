@@ -63,7 +63,7 @@ def run_single_layer_patching(
     layer_name = f"layer_{layer_idx}"
     cached_activation = {}
     layer = model.transformer_encoder.layers[layer_idx]
-    attention_module = layer.self_attn_between_items
+    attention_module = layer.self_attn_between_features
     cache_hook_fn = create_cache_hook(cached_activation, layer_name)
     cache_handle = attention_module.register_forward_hook(cache_hook_fn)
     with torch.no_grad():
@@ -86,9 +86,10 @@ def run_single_layer_patching(
     )
     restoration = y_patched_val - y_corrupt_val
     clean_corrupt_diff = y_clean_val - y_corrupt_val
-    recovery_ratio = (
-        restoration / clean_corrupt_diff if abs(clean_corrupt_diff) > 1e-10 else 0.0
-    )
+    EPS = 1e-3  # choose relative to target scale
+
+    denom = np.sign(clean_corrupt_diff) * max(abs(clean_corrupt_diff), EPS)
+    recovery_ratio = restoration / denom
     return {
         "y_clean": y_clean_val,
         "y_corrupt": y_corrupt_val,
@@ -154,9 +155,6 @@ def plot_results(results: List[Dict], save_path: Path):
 
 
 def main():
-    print("=" * 60)
-    print("MINIMAL FULL LAYER PATCHING")
-    print("=" * 60)
     set_seed(SEED)
     device = DEVICE or ("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
@@ -178,10 +176,10 @@ def main():
     print("\nTraining TabPFN...")
     regressor = TabPFNRegressor(device=device, n_estimators=1)
     regressor.fit(X_train, y_train)
-    print("Model trained")
-    print("\n" + "=" * 60)
-    print("RUNNING FULL LAYER PATCHING")
-    print("=" * 60)
+    # print("Model trained")
+    # print("\n" + "=" * 60)
+    # print("RUNNING FULL LAYER PATCHING")
+    # print("=" * 60)
     results = sweep_all_layers(regressor, X_clean, X_corrupt)
     print("\n" + "=" * 60)
     print("RESULTS SUMMARY")
