@@ -1,14 +1,17 @@
 import numpy as np
 from sklearn.metrics import mean_squared_error, r2_score
-from typing import List, Tuple, Dict
+from typing import Tuple
 from sklearn.linear_model import LinearRegression
 import matplotlib.pyplot as plt
 from src.utils.utils import set_seed
 from src.probing.answer_probing.linear_probe import train_model, extract_activations
 
-def create_dummy_dataset(num_samples: int = 1000, bias: bool = False) -> Tuple[np.ndarray, np.ndarray]:
+
+def create_dummy_dataset(
+    num_samples: int = 1000, bias: bool = False
+) -> Tuple[np.ndarray, np.ndarray]:
     """
-    Create a dummy dataset where each input X has 4 values: a, b, c, d, 
+    Create a dummy dataset where each input X has 4 values: a, b, c, d,
     and the target y = a * b + c
     """
     X = np.random.randn(num_samples, 3)
@@ -34,7 +37,8 @@ def main():
 
     regressor = train_model(X_train, y_train)
     activations = extract_activations(
-        regressor, regressor.model_, X_test, device='cuda')
+        regressor, regressor.model_, X_test, device="cuda"
+    )
 
     layer_ids = []
     train_r2_scores = []
@@ -56,7 +60,7 @@ def main():
         if np.isnan(linear_train).any() or np.isinf(linear_train).any():
             print(f"Warning: {layer} contains NaN or Inf values in activations")
             continue
-        
+
         # Always normalize to prevent overflow and improve numerical stability
         train_mean = linear_train.mean(axis=0, keepdims=True)
         train_std = linear_train.std(axis=0, keepdims=True) + 1e-8
@@ -66,7 +70,7 @@ def main():
         model = LinearRegression()
         try:
             model.fit(linear_train, linear_y_train)
-            
+
             # Check predictions for NaN
             train_pred = model.predict(linear_train)
             if np.isnan(train_pred).any() or np.isinf(train_pred).any():
@@ -82,13 +86,15 @@ def main():
         train_r2 = model.score(linear_train, linear_y_train)
         print(f"Layer {layer} train mse: {train_mse:.4f}")
         print(f"Layer {layer} train r2 score: {train_r2:.4f}")
-        
+
         test_pred = model.predict(linear_test)
         if np.isnan(test_pred).any() or np.isinf(test_pred).any():
-            print(f"Warning: {layer} test predictions contain NaN/Inf, skipping test metrics")
+            print(
+                f"Warning: {layer} test predictions contain NaN/Inf, skipping test metrics"
+            )
             print("--------------------------------")
             continue
-        
+
         test_mse = mean_squared_error(linear_y_test, test_pred)
         test_r2 = r2_score(linear_y_test, test_pred)
         print(f"Layer {layer} test mse: {test_mse:.4f}")
@@ -97,7 +103,7 @@ def main():
 
         # Track metrics for plotting
         try:
-            layer_idx = int(layer.split('_')[-1])
+            layer_idx = int(layer.split("_")[-1])
         except ValueError:
             layer_idx = layer
         layer_ids.append(layer_idx)
@@ -125,28 +131,60 @@ def main():
         fig, ax1 = plt.subplots(figsize=(10, 6))
         ax2 = ax1.twinx()
 
-        r2_train_line = ax1.plot(sorted_layers, sorted_train_r2, 'o-', color='tab:blue', label='Train R²', linewidth=2, markersize=6)
-        r2_test_line = ax1.plot(sorted_layers, sorted_test_r2, 's-', color='tab:cyan', label='Test R²', linewidth=2, markersize=6)
+        r2_train_line = ax1.plot(
+            sorted_layers,
+            sorted_train_r2,
+            "o-",
+            color="tab:blue",
+            label="Train R²",
+            linewidth=2,
+            markersize=6,
+        )
+        r2_test_line = ax1.plot(
+            sorted_layers,
+            sorted_test_r2,
+            "s-",
+            color="tab:cyan",
+            label="Test R²",
+            linewidth=2,
+            markersize=6,
+        )
 
-        mse_train_line = ax2.plot(sorted_layers, sorted_train_mse, 'o--', color='tab:red', label='Train MSE', linewidth=2, markersize=6)
-        mse_test_line = ax2.plot(sorted_layers, sorted_test_mse, 's--', color='tab:orange', label='Test MSE', linewidth=2, markersize=6)
+        mse_train_line = ax2.plot(
+            sorted_layers,
+            sorted_train_mse,
+            "o--",
+            color="tab:red",
+            label="Train MSE",
+            linewidth=2,
+            markersize=6,
+        )
+        mse_test_line = ax2.plot(
+            sorted_layers,
+            sorted_test_mse,
+            "s--",
+            color="tab:orange",
+            label="Test MSE",
+            linewidth=2,
+            markersize=6,
+        )
 
-        ax1.set_xlabel('Layer', fontsize=axis_label_fontsize)
-        ax1.set_ylabel('R² Score', fontsize=axis_label_fontsize, color='tab:blue')
-        ax2.set_ylabel('MSE', fontsize=axis_label_fontsize, color='tab:red')
+        ax1.set_xlabel("Layer", fontsize=axis_label_fontsize)
+        ax1.set_ylabel("R² Score", fontsize=axis_label_fontsize, color="tab:blue")
+        ax2.set_ylabel("MSE", fontsize=axis_label_fontsize, color="tab:red")
 
-        ax1.tick_params(axis='both', labelsize=tick_label_fontsize, colors='black')
-        ax2.tick_params(axis='both', labelsize=tick_label_fontsize, colors='black')
+        ax1.tick_params(axis="both", labelsize=tick_label_fontsize, colors="black")
+        ax2.tick_params(axis="both", labelsize=tick_label_fontsize, colors="black")
 
         lines = r2_train_line + r2_test_line + mse_train_line + mse_test_line
         labels = [l.get_label() for l in lines]
-        ax1.legend(lines, labels, fontsize=legend_fontsize, loc='best')
+        ax1.legend(lines, labels, fontsize=legend_fontsize, loc="best")
 
         ax1.grid(True, alpha=0.3)
         fig.tight_layout()
 
-        output_path = 'answer_probe_results_r2_mse.png'
-        plt.savefig(output_path, dpi=300, bbox_inches='tight')
+        output_path = "answer_probe_results_r2_mse.png"
+        plt.savefig(output_path, dpi=300, bbox_inches="tight")
         print(f"Saved combined R²+MSE plot to {output_path}")
         plt.close()
     else:
@@ -155,4 +193,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

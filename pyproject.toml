@@ -9,7 +9,7 @@ dependencies = [
     "matplotlib>=3.10.8",
     "numpy>=2.4.1",
     "tabpfn>=2.0.3",
-    "streamlit>=1.28.0",
     "pandas>=2.0.0",
     "pandas-stubs~=2.3.3",
+    "aim>=3.29.1",
 ]

@@ -17,7 +17,7 @@ SEED = 42
 N_SAMPLES = 1000
 TEST_SIZE = 0.5
 N_BATCH_SAMPLES = 10
-DEVICE = None
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 OUTPUT_DIR = Path(__file__).parent / "output"
 
 
@@ -290,12 +290,12 @@ def main():
     averaged_results, stats = average_results(all_results)
 
     # Print summary
-    print(f"\nOverall statistics:")
+    print("\nOverall statistics:")
     print(f"  Mean recovery: {stats['overall']['mean_recovery'] * 100:.2f}%")
     print(f"  Std recovery: {stats['overall']['std_recovery'] * 100:.2f}%")
     print(f"  Samples: {stats['overall']['n_samples']}")
 
-    print(f"\nLayer-by-layer (mean ± std):")
+    print("\nLayer-by-layer (mean ± std):")
     print(f"{'Layer':<8} {'Recovery %':<20}")
     print("-" * 30)
     for s in stats["per_layer"]:

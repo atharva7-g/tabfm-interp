@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List, Sequence, Tuple, cast
+from typing import List, Sequence, Tuple
 
 import numpy as np
 import torch

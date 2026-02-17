@@ -1,0 +1,14 @@
+{
+  "experiment_type": "embedding_patching",
+  "dataset_type": "multiplication",
+  "corrupt_idx": 1,
+  "noise_std": 1.0,
+  "seed": 42,
+  "n_samples": 1000,
+  "y_clean": 4.117085933685303,
+  "y_corrupt": 1.5201478004455566,
+  "y_patched": 1.5201478004455566,
+  "restoration": 0.0,
+  "recovery_ratio": 0.0,
+  "clean_corrupt_diff": 2.596938133239746
+}

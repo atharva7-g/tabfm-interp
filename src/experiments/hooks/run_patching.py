@@ -3,7 +3,6 @@
 import sys
 import argparse
 from pathlib import Path
-import numpy as np
 import torch
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
@@ -184,7 +183,7 @@ def main():
     print(f"Corrupted output: {all_summaries[0]['y_corrupt']:.6f}")
 
     if patch_dim is None:
-        print(f"\nFull layer patching results:")
+        print("\nFull layer patching results:")
         print(f"{'Layer':<8} {'Best Recovery':<15}")
         print("-" * 25)
         print(
@@ -194,7 +193,7 @@ def main():
             f"\nBest layer overall: {all_summaries[0]['best_layer']} ({all_summaries[0]['best_recovery'] * 100:.2f}% recovery)"
         )
     else:
-        print(f"\nHead-by-head results:")
+        print("\nHead-by-head results:")
         print(f"{'Head':<8} {'Best Recovery':<15} {'Best Layer':<12}")
         print("-" * 35)
         for summary in all_summaries:

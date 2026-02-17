@@ -1,4 +1,4 @@
-from typing import Any, List, Tuple
+from typing import Any
 from collections import defaultdict
 import atexit
 
@@ -64,7 +64,7 @@ class ShapeInspector:
         print(f"\n[ShapeInspector: {self.name}]")
         print(f"  Total calls: {self.call_count}")
         print(f"  Unique tensor configurations: {len(unique_info)}")
-        print(f"  Details:")
+        print("  Details:")
         for (shape, dtype, device), count in unique_info.items():
             if shape != "N/A":
                 print(
@@ -91,7 +91,7 @@ def _print_all_inspectors():
             print(f"\n[ShapeInspector: {inspector.name}]")
             print(f"  Total calls: {inspector.call_count}")
             print(f"  Unique tensor configurations: {len(unique_info)}")
-            print(f"  Details:")
+            print("  Details:")
             for (shape, dtype, device), count in unique_info.items():
                 if shape != "N/A":
                     print(

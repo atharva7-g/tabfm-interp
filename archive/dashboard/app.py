@@ -226,10 +226,10 @@ def main():
                 st.subheader("Full Config")
                 st.json(config)
                 if st.button(
-                    f"Use for New Experiment", key=f"use_{config['_filename']}"
+                    "Use for New Experiment", key=f"use_{config['_filename']}"
                 ):
                     st.session_state["selected_config"] = config
-                    st.success(f"Config selected! Go to 'Run Experiment' tab.")
+                    st.success("Config selected! Go to 'Run Experiment' tab.")
                     st.rerun()
 
         # Create new config
@@ -332,7 +332,6 @@ def main():
                         from sklearn.model_selection import train_test_split
                         from tabpfn import TabPFNRegressor
                         import torch
-                        import numpy as np
 
                         set_seed(42)
                         device = "cuda" if torch.cuda.is_available() else "cpu"

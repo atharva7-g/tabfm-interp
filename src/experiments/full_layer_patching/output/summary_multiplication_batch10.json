@@ -1,0 +1,1755 @@
+{
+  "dataset_type": "multiplication",
+  "corrupt_idx": 1,
+  "noise_std": 1.0,
+  "seed": 42,
+  "n_samples": 1000,
+  "n_batch_samples": 10,
+  "y_clean": -0.5983435481786727,
+  "y_corrupt": 0.43128412067890165,
+  "best_layer": 0,
+  "best_recovery_mean": 1.0,
+  "best_recovery_std": 0.0,
+  "overall_stats": {
+    "mean_recovery": 1.0,
+    "std_recovery": 0.0,
+    "n_samples": 10,
+    "n_layers": 18
+  },
+  "per_layer_stats": [
+    {
+      "layer_idx": 0,
+      "recovery_ratio_mean": 1.0,
+      "recovery_ratio_std": 0.0,
+      "restoration_mean": -1.0296276688575745,
+      "restoration_std": 2.4385239114628177,
+      "n_samples": 10
+    },
+    {
+      "layer_idx": 1,
+      "recovery_ratio_mean": 1.0,
+      "recovery_ratio_std": 0.0,
+      "restoration_mean": -1.0296276688575745,
+      "restoration_std": 2.4385239114628177,
+      "n_samples": 10
+    },
+    {
+      "layer_idx": 2,
+      "recovery_ratio_mean": 1.0,
+      "recovery_ratio_std": 0.0,
+      "restoration_mean": -1.0296276688575745,
+      "restoration_std": 2.4385239114628177,
+      "n_samples": 10
+    },
+    {
+      "layer_idx": 3,
+      "recovery_ratio_mean": 1.0,
+      "recovery_ratio_std": 0.0,
+      "restoration_mean": -1.0296276688575745,
+      "restoration_std": 2.4385239114628177,
+      "n_samples": 10
+    },
+    {
+      "layer_idx": 4,
+      "recovery_ratio_mean": 1.0,
+      "recovery_ratio_std": 0.0,
+      "restoration_mean": -1.0296276688575745,
+      "restoration_std": 2.4385239114628177,
+      "n_samples": 10
+    },
+    {
+      "layer_idx": 5,
+      "recovery_ratio_mean": 1.0,
+      "recovery_ratio_std": 0.0,
+      "restoration_mean": -1.0296276688575745,
+      "restoration_std": 2.4385239114628177,
+      "n_samples": 10
+    },
+    {
+      "layer_idx": 6,
+      "recovery_ratio_mean": 1.0,
+      "recovery_ratio_std": 0.0,
+      "restoration_mean": -1.0296276688575745,
+      "restoration_std": 2.4385239114628177,
+      "n_samples": 10
+    },
+    {
+      "layer_idx": 7,
+      "recovery_ratio_mean": 1.0,
+      "recovery_ratio_std": 0.0,
+      "restoration_mean": -1.0296276688575745,
+      "restoration_std": 2.4385239114628177,
+      "n_samples": 10
+    },
+    {
+      "layer_idx": 8,
+      "recovery_ratio_mean": 1.0,
+      "recovery_ratio_std": 0.0,
+      "restoration_mean": -1.0296276688575745,
+      "restoration_std": 2.4385239114628177,
+      "n_samples": 10
+    },
+    {
+      "layer_idx": 9,
+      "recovery_ratio_mean": 1.0,
+      "recovery_ratio_std": 0.0,
+      "restoration_mean": -1.0296276688575745,
+      "restoration_std": 2.4385239114628177,
+      "n_samples": 10
+    },
+    {
+      "layer_idx": 10,
+      "recovery_ratio_mean": 1.0,
+      "recovery_ratio_std": 0.0,
+      "restoration_mean": -1.0296276688575745,
+      "restoration_std": 2.4385239114628177,
+      "n_samples": 10
+    },
+    {
+      "layer_idx": 11,
+      "recovery_ratio_mean": 1.0,
+      "recovery_ratio_std": 0.0,
+      "restoration_mean": -1.0296276688575745,
+      "restoration_std": 2.4385239114628177,
+      "n_samples": 10
+    },
+    {
+      "layer_idx": 12,
+      "recovery_ratio_mean": 1.0,
+      "recovery_ratio_std": 0.0,
+      "restoration_mean": -1.0296276688575745,
+      "restoration_std": 2.4385239114628177,
+      "n_samples": 10
+    },
+    {
+      "layer_idx": 13,
+      "recovery_ratio_mean": 1.0,
+      "recovery_ratio_std": 0.0,
+      "restoration_mean": -1.0296276688575745,
+      "restoration_std": 2.4385239114628177,
+      "n_samples": 10
+    },
+    {
+      "layer_idx": 14,
+      "recovery_ratio_mean": 1.0,
+      "recovery_ratio_std": 0.0,
+      "restoration_mean": -1.0296276688575745,
+      "restoration_std": 2.4385239114628177,
+      "n_samples": 10
+    },
+    {
+      "layer_idx": 15,
+      "recovery_ratio_mean": 1.0,
+      "recovery_ratio_std": 0.0,
+      "restoration_mean": -1.0296276688575745,
+      "restoration_std": 2.4385239114628177,
+      "n_samples": 10
+    },
+    {
+      "layer_idx": 16,
+      "recovery_ratio_mean": 1.0,
+      "recovery_ratio_std": 0.0,
+      "restoration_mean": -1.0296276688575745,
+      "restoration_std": 2.4385239114628177,
+      "n_samples": 10
+    },
+    {
+      "layer_idx": 17,
+      "recovery_ratio_mean": 1.0,
+      "recovery_ratio_std": 0.0,
+      "restoration_mean": -1.0296276688575745,
+      "restoration_std": 2.4385239114628177,
+      "n_samples": 10
+    }
+  ],
+  "averaged_results": [
+    {
+      "layer_idx": 0,
+      "y_clean": -0.5983435481786727,
+      "y_corrupt": 0.43128412067890165,
+      "restoration": -1.0296276688575745,
+      "recovery_ratio": 1.0
+    },
+    {
+      "layer_idx": 1,
+      "y_clean": -0.5983435481786727,
+      "y_corrupt": 0.43128412067890165,
+      "restoration": -1.0296276688575745,
+      "recovery_ratio": 1.0
+    },
+    {
+      "layer_idx": 2,
+      "y_clean": -0.5983435481786727,
+      "y_corrupt": 0.43128412067890165,
+      "restoration": -1.0296276688575745,
+      "recovery_ratio": 1.0
+    },
+    {
+      "layer_idx": 3,
+      "y_clean": -0.5983435481786727,
+      "y_corrupt": 0.43128412067890165,
+      "restoration": -1.0296276688575745,
+      "recovery_ratio": 1.0
+    },
+    {
+      "layer_idx": 4,
+      "y_clean": -0.5983435481786727,
+      "y_corrupt": 0.43128412067890165,
+      "restoration": -1.0296276688575745,
+      "recovery_ratio": 1.0
+    },
+    {
+      "layer_idx": 5,
+      "y_clean": -0.5983435481786727,
+      "y_corrupt": 0.43128412067890165,
+      "restoration": -1.0296276688575745,
+      "recovery_ratio": 1.0
+    },
+    {
+      "layer_idx": 6,
+      "y_clean": -0.5983435481786727,
+      "y_corrupt": 0.43128412067890165,
+      "restoration": -1.0296276688575745,
+      "recovery_ratio": 1.0
+    },
+    {
+      "layer_idx": 7,
+      "y_clean": -0.5983435481786727,
+      "y_corrupt": 0.43128412067890165,
+      "restoration": -1.0296276688575745,
+      "recovery_ratio": 1.0
+    },
+    {
+      "layer_idx": 8,
+      "y_clean": -0.5983435481786727,
+      "y_corrupt": 0.43128412067890165,
+      "restoration": -1.0296276688575745,
+      "recovery_ratio": 1.0
+    },
+    {
+      "layer_idx": 9,
+      "y_clean": -0.5983435481786727,
+      "y_corrupt": 0.43128412067890165,
+      "restoration": -1.0296276688575745,
+      "recovery_ratio": 1.0
+    },
+    {
+      "layer_idx": 10,
+      "y_clean": -0.5983435481786727,
+      "y_corrupt": 0.43128412067890165,
+      "restoration": -1.0296276688575745,
+      "recovery_ratio": 1.0
+    },
+    {
+      "layer_idx": 11,
+      "y_clean": -0.5983435481786727,
+      "y_corrupt": 0.43128412067890165,
+      "restoration": -1.0296276688575745,
+      "recovery_ratio": 1.0
+    },
+    {
+      "layer_idx": 12,
+      "y_clean": -0.5983435481786727,
+      "y_corrupt": 0.43128412067890165,
+      "restoration": -1.0296276688575745,
+      "recovery_ratio": 1.0
+    },
+    {
+      "layer_idx": 13,
+      "y_clean": -0.5983435481786727,
+      "y_corrupt": 0.43128412067890165,
+      "restoration": -1.0296276688575745,
+      "recovery_ratio": 1.0
+    },
+    {
+      "layer_idx": 14,
+      "y_clean": -0.5983435481786727,
+      "y_corrupt": 0.43128412067890165,
+      "restoration": -1.0296276688575745,
+      "recovery_ratio": 1.0
+    },
+    {
+      "layer_idx": 15,
+      "y_clean": -0.5983435481786727,
+      "y_corrupt": 0.43128412067890165,
+      "restoration": -1.0296276688575745,
+      "recovery_ratio": 1.0
+    },
+    {
+      "layer_idx": 16,
+      "y_clean": -0.5983435481786727,
+      "y_corrupt": 0.43128412067890165,
+      "restoration": -1.0296276688575745,
+      "recovery_ratio": 1.0
+    },
+    {
+      "layer_idx": 17,
+      "y_clean": -0.5983435481786727,
+      "y_corrupt": 0.43128412067890165,
+      "restoration": -1.0296276688575745,
+      "recovery_ratio": 1.0
+    }
+  ],
+  "all_results": [
+    [
+      {
+        "y_clean": 4.117085933685303,
+        "y_corrupt": 1.5201478004455566,
+        "y_patched": 4.117085933685303,
+        "restoration": 2.596938133239746,
+        "recovery_ratio": 1.0,
+        "layer_idx": 0
+      },
+      {
+        "y_clean": 4.117085933685303,
+        "y_corrupt": 1.5201478004455566,
+        "y_patched": 4.117085933685303,
+        "restoration": 2.596938133239746,
+        "recovery_ratio": 1.0,
+        "layer_idx": 1
+      },
+      {
+        "y_clean": 4.117085933685303,
+        "y_corrupt": 1.5201478004455566,
+        "y_patched": 4.117085933685303,
+        "restoration": 2.596938133239746,
+        "recovery_ratio": 1.0,
+        "layer_idx": 2
+      },
+      {
+        "y_clean": 4.117085933685303,
+        "y_corrupt": 1.5201478004455566,
+        "y_patched": 4.117085933685303,
+        "restoration": 2.596938133239746,
+        "recovery_ratio": 1.0,
+        "layer_idx": 3
+      },
+      {
+        "y_clean": 4.117085933685303,
+        "y_corrupt": 1.5201478004455566,
+        "y_patched": 4.117085933685303,
+        "restoration": 2.596938133239746,
+        "recovery_ratio": 1.0,
+        "layer_idx": 4
+      },
+      {
+        "y_clean": 4.117085933685303,
+        "y_corrupt": 1.5201478004455566,
+        "y_patched": 4.117085933685303,
+        "restoration": 2.596938133239746,
+        "recovery_ratio": 1.0,
+        "layer_idx": 5
+      },
+      {
+        "y_clean": 4.117085933685303,
+        "y_corrupt": 1.5201478004455566,
+        "y_patched": 4.117085933685303,
+        "restoration": 2.596938133239746,
+        "recovery_ratio": 1.0,
+        "layer_idx": 6
+      },
+      {
+        "y_clean": 4.117085933685303,
+        "y_corrupt": 1.5201478004455566,
+        "y_patched": 4.117085933685303,
+        "restoration": 2.596938133239746,
+        "recovery_ratio": 1.0,
+        "layer_idx": 7
+      },
+      {
+        "y_clean": 4.117085933685303,
+        "y_corrupt": 1.5201478004455566,
+        "y_patched": 4.117085933685303,
+        "restoration": 2.596938133239746,
+        "recovery_ratio": 1.0,
+        "layer_idx": 8
+      },
+      {
+        "y_clean": 4.117085933685303,
+        "y_corrupt": 1.5201478004455566,
+        "y_patched": 4.117085933685303,
+        "restoration": 2.596938133239746,
+        "recovery_ratio": 1.0,
+        "layer_idx": 9
+      },
+      {
+        "y_clean": 4.117085933685303,
+        "y_corrupt": 1.5201478004455566,
+        "y_patched": 4.117085933685303,
+        "restoration": 2.596938133239746,
+        "recovery_ratio": 1.0,
+        "layer_idx": 10
+      },
+      {
+        "y_clean": 4.117085933685303,
+        "y_corrupt": 1.5201478004455566,
+        "y_patched": 4.117085933685303,
+        "restoration": 2.596938133239746,
+        "recovery_ratio": 1.0,
+        "layer_idx": 11
+      },
+      {
+        "y_clean": 4.117085933685303,
+        "y_corrupt": 1.5201478004455566,
+        "y_patched": 4.117085933685303,
+        "restoration": 2.596938133239746,
+        "recovery_ratio": 1.0,
+        "layer_idx": 12
+      },
+      {
+        "y_clean": 4.117085933685303,
+        "y_corrupt": 1.5201478004455566,
+        "y_patched": 4.117085933685303,
+        "restoration": 2.596938133239746,
+        "recovery_ratio": 1.0,
+        "layer_idx": 13
+      },
+      {
+        "y_clean": 4.117085933685303,
+        "y_corrupt": 1.5201478004455566,
+        "y_patched": 4.117085933685303,
+        "restoration": 2.596938133239746,
+        "recovery_ratio": 1.0,
+        "layer_idx": 14
+      },
+      {
+        "y_clean": 4.117085933685303,
+        "y_corrupt": 1.5201478004455566,
+        "y_patched": 4.117085933685303,
+        "restoration": 2.596938133239746,
+        "recovery_ratio": 1.0,
+        "layer_idx": 15
+      },
+      {
+        "y_clean": 4.117085933685303,
+        "y_corrupt": 1.5201478004455566,
+        "y_patched": 4.117085933685303,
+        "restoration": 2.596938133239746,
+        "recovery_ratio": 1.0,
+        "layer_idx": 16
+      },
+      {
+        "y_clean": 4.117085933685303,
+        "y_corrupt": 1.5201478004455566,
+        "y_patched": 4.117085933685303,
+        "restoration": 2.596938133239746,
+        "recovery_ratio": 1.0,
+        "layer_idx": 17
+      }
+    ],
+    [
+      {
+        "y_clean": -0.38593345880508423,
+        "y_corrupt": -0.035580113530159,
+        "y_patched": -0.38593345880508423,
+        "restoration": -0.35035334527492523,
+        "recovery_ratio": 1.0,
+        "layer_idx": 0
+      },
+      {
+        "y_clean": -0.38593345880508423,
+        "y_corrupt": -0.035580113530159,
+        "y_patched": -0.38593345880508423,
+        "restoration": -0.35035334527492523,
+        "recovery_ratio": 1.0,
+        "layer_idx": 1
+      },
+      {
+        "y_clean": -0.38593345880508423,
+        "y_corrupt": -0.035580113530159,
+        "y_patched": -0.38593345880508423,
+        "restoration": -0.35035334527492523,
+        "recovery_ratio": 1.0,
+        "layer_idx": 2
+      },
+      {
+        "y_clean": -0.38593345880508423,
+        "y_corrupt": -0.035580113530159,
+        "y_patched": -0.38593345880508423,
+        "restoration": -0.35035334527492523,
+        "recovery_ratio": 1.0,
+        "layer_idx": 3
+      },
+      {
+        "y_clean": -0.38593345880508423,
+        "y_corrupt": -0.035580113530159,
+        "y_patched": -0.38593345880508423,
+        "restoration": -0.35035334527492523,
+        "recovery_ratio": 1.0,
+        "layer_idx": 4
+      },
+      {
+        "y_clean": -0.38593345880508423,
+        "y_corrupt": -0.035580113530159,
+        "y_patched": -0.38593345880508423,
+        "restoration": -0.35035334527492523,
+        "recovery_ratio": 1.0,
+        "layer_idx": 5
+      },
+      {
+        "y_clean": -0.38593345880508423,
+        "y_corrupt": -0.035580113530159,
+        "y_patched": -0.38593345880508423,
+        "restoration": -0.35035334527492523,
+        "recovery_ratio": 1.0,
+        "layer_idx": 6
+      },
+      {
+        "y_clean": -0.38593345880508423,
+        "y_corrupt": -0.035580113530159,
+        "y_patched": -0.38593345880508423,
+        "restoration": -0.35035334527492523,
+        "recovery_ratio": 1.0,
+        "layer_idx": 7
+      },
+      {
+        "y_clean": -0.38593345880508423,
+        "y_corrupt": -0.035580113530159,
+        "y_patched": -0.38593345880508423,
+        "restoration": -0.35035334527492523,
+        "recovery_ratio": 1.0,
+        "layer_idx": 8
+      },
+      {
+        "y_clean": -0.38593345880508423,
+        "y_corrupt": -0.035580113530159,
+        "y_patched": -0.38593345880508423,
+        "restoration": -0.35035334527492523,
+        "recovery_ratio": 1.0,
+        "layer_idx": 9
+      },
+      {
+        "y_clean": -0.38593345880508423,
+        "y_corrupt": -0.035580113530159,
+        "y_patched": -0.38593345880508423,
+        "restoration": -0.35035334527492523,
+        "recovery_ratio": 1.0,
+        "layer_idx": 10
+      },
+      {
+        "y_clean": -0.38593345880508423,
+        "y_corrupt": -0.035580113530159,
+        "y_patched": -0.38593345880508423,
+        "restoration": -0.35035334527492523,
+        "recovery_ratio": 1.0,
+        "layer_idx": 11
+      },
+      {
+        "y_clean": -0.38593345880508423,
+        "y_corrupt": -0.035580113530159,
+        "y_patched": -0.38593345880508423,
+        "restoration": -0.35035334527492523,
+        "recovery_ratio": 1.0,
+        "layer_idx": 12
+      },
+      {
+        "y_clean": -0.38593345880508423,
+        "y_corrupt": -0.035580113530159,
+        "y_patched": -0.38593345880508423,
+        "restoration": -0.35035334527492523,
+        "recovery_ratio": 1.0,
+        "layer_idx": 13
+      },
+      {
+        "y_clean": -0.38593345880508423,
+        "y_corrupt": -0.035580113530159,
+        "y_patched": -0.38593345880508423,
+        "restoration": -0.35035334527492523,
+        "recovery_ratio": 1.0,
+        "layer_idx": 14
+      },
+      {
+        "y_clean": -0.38593345880508423,
+        "y_corrupt": -0.035580113530159,
+        "y_patched": -0.38593345880508423,
+        "restoration": -0.35035334527492523,
+        "recovery_ratio": 1.0,
+        "layer_idx": 15
+      },
+      {
+        "y_clean": -0.38593345880508423,
+        "y_corrupt": -0.035580113530159,
+        "y_patched": -0.38593345880508423,
+        "restoration": -0.35035334527492523,
+        "recovery_ratio": 1.0,
+        "layer_idx": 16
+      },
+      {
+        "y_clean": -0.38593345880508423,
+        "y_corrupt": -0.035580113530159,
+        "y_patched": -0.38593345880508423,
+        "restoration": -0.35035334527492523,
+        "recovery_ratio": 1.0,
+        "layer_idx": 17
+      }
+    ],
+    [
+      {
+        "y_clean": -1.2398744821548462,
+        "y_corrupt": 0.6171782612800598,
+        "y_patched": -1.2398744821548462,
+        "restoration": -1.857052743434906,
+        "recovery_ratio": 1.0,
+        "layer_idx": 0
+      },
+      {
+        "y_clean": -1.2398744821548462,
+        "y_corrupt": 0.6171782612800598,
+        "y_patched": -1.2398744821548462,
+        "restoration": -1.857052743434906,
+        "recovery_ratio": 1.0,
+        "layer_idx": 1
+      },
+      {
+        "y_clean": -1.2398744821548462,
+        "y_corrupt": 0.6171782612800598,
+        "y_patched": -1.2398744821548462,
+        "restoration": -1.857052743434906,
+        "recovery_ratio": 1.0,
+        "layer_idx": 2
+      },
+      {
+        "y_clean": -1.2398744821548462,
+        "y_corrupt": 0.6171782612800598,
+        "y_patched": -1.2398744821548462,
+        "restoration": -1.857052743434906,
+        "recovery_ratio": 1.0,
+        "layer_idx": 3
+      },
+      {
+        "y_clean": -1.2398744821548462,
+        "y_corrupt": 0.6171782612800598,
+        "y_patched": -1.2398744821548462,
+        "restoration": -1.857052743434906,
+        "recovery_ratio": 1.0,
+        "layer_idx": 4
+      },
+      {
+        "y_clean": -1.2398744821548462,
+        "y_corrupt": 0.6171782612800598,
+        "y_patched": -1.2398744821548462,
+        "restoration": -1.857052743434906,
+        "recovery_ratio": 1.0,
+        "layer_idx": 5
+      },
+      {
+        "y_clean": -1.2398744821548462,
+        "y_corrupt": 0.6171782612800598,
+        "y_patched": -1.2398744821548462,
+        "restoration": -1.857052743434906,
+        "recovery_ratio": 1.0,
+        "layer_idx": 6
+      },
+      {
+        "y_clean": -1.2398744821548462,
+        "y_corrupt": 0.6171782612800598,
+        "y_patched": -1.2398744821548462,
+        "restoration": -1.857052743434906,
+        "recovery_ratio": 1.0,
+        "layer_idx": 7
+      },
+      {
+        "y_clean": -1.2398744821548462,
+        "y_corrupt": 0.6171782612800598,
+        "y_patched": -1.2398744821548462,
+        "restoration": -1.857052743434906,
+        "recovery_ratio": 1.0,
+        "layer_idx": 8
+      },
+      {
+        "y_clean": -1.2398744821548462,
+        "y_corrupt": 0.6171782612800598,
+        "y_patched": -1.2398744821548462,
+        "restoration": -1.857052743434906,
+        "recovery_ratio": 1.0,
+        "layer_idx": 9
+      },
+      {
+        "y_clean": -1.2398744821548462,
+        "y_corrupt": 0.6171782612800598,
+        "y_patched": -1.2398744821548462,
+        "restoration": -1.857052743434906,
+        "recovery_ratio": 1.0,
+        "layer_idx": 10
+      },
+      {
+        "y_clean": -1.2398744821548462,
+        "y_corrupt": 0.6171782612800598,
+        "y_patched": -1.2398744821548462,
+        "restoration": -1.857052743434906,
+        "recovery_ratio": 1.0,
+        "layer_idx": 11
+      },
+      {
+        "y_clean": -1.2398744821548462,
+        "y_corrupt": 0.6171782612800598,
+        "y_patched": -1.2398744821548462,
+        "restoration": -1.857052743434906,
+        "recovery_ratio": 1.0,
+        "layer_idx": 12
+      },
+      {
+        "y_clean": -1.2398744821548462,
+        "y_corrupt": 0.6171782612800598,
+        "y_patched": -1.2398744821548462,
+        "restoration": -1.857052743434906,
+        "recovery_ratio": 1.0,
+        "layer_idx": 13
+      },
+      {
+        "y_clean": -1.2398744821548462,
+        "y_corrupt": 0.6171782612800598,
+        "y_patched": -1.2398744821548462,
+        "restoration": -1.857052743434906,
+        "recovery_ratio": 1.0,
+        "layer_idx": 14
+      },
+      {
+        "y_clean": -1.2398744821548462,
+        "y_corrupt": 0.6171782612800598,
+        "y_patched": -1.2398744821548462,
+        "restoration": -1.857052743434906,
+        "recovery_ratio": 1.0,
+        "layer_idx": 15
+      },
+      {
+        "y_clean": -1.2398744821548462,
+        "y_corrupt": 0.6171782612800598,
+        "y_patched": -1.2398744821548462,
+        "restoration": -1.857052743434906,
+        "recovery_ratio": 1.0,
+        "layer_idx": 16
+      },
+      {
+        "y_clean": -1.2398744821548462,
+        "y_corrupt": 0.6171782612800598,
+        "y_patched": -1.2398744821548462,
+        "restoration": -1.857052743434906,
+        "recovery_ratio": 1.0,
+        "layer_idx": 17
+      }
+    ],
+    [
+      {
+        "y_clean": -4.998513698577881,
+        "y_corrupt": -0.2306652069091797,
+        "y_patched": -4.998513698577881,
+        "restoration": -4.767848491668701,
+        "recovery_ratio": 1.0,
+        "layer_idx": 0
+      },
+      {
+        "y_clean": -4.998513698577881,
+        "y_corrupt": -0.2306652069091797,
+        "y_patched": -4.998513698577881,
+        "restoration": -4.767848491668701,
+        "recovery_ratio": 1.0,
+        "layer_idx": 1
+      },
+      {
+        "y_clean": -4.998513698577881,
+        "y_corrupt": -0.2306652069091797,
+        "y_patched": -4.998513698577881,
+        "restoration": -4.767848491668701,
+        "recovery_ratio": 1.0,
+        "layer_idx": 2
+      },
+      {
+        "y_clean": -4.998513698577881,
+        "y_corrupt": -0.2306652069091797,
+        "y_patched": -4.998513698577881,
+        "restoration": -4.767848491668701,
+        "recovery_ratio": 1.0,
+        "layer_idx": 3
+      },
+      {
+        "y_clean": -4.998513698577881,
+        "y_corrupt": -0.2306652069091797,
+        "y_patched": -4.998513698577881,
+        "restoration": -4.767848491668701,
+        "recovery_ratio": 1.0,
+        "layer_idx": 4
+      },
+      {
+        "y_clean": -4.998513698577881,
+        "y_corrupt": -0.2306652069091797,
+        "y_patched": -4.998513698577881,
+        "restoration": -4.767848491668701,
+        "recovery_ratio": 1.0,
+        "layer_idx": 5
+      },
+      {
+        "y_clean": -4.998513698577881,
+        "y_corrupt": -0.2306652069091797,
+        "y_patched": -4.998513698577881,
+        "restoration": -4.767848491668701,
+        "recovery_ratio": 1.0,
+        "layer_idx": 6
+      },
+      {
+        "y_clean": -4.998513698577881,
+        "y_corrupt": -0.2306652069091797,
+        "y_patched": -4.998513698577881,
+        "restoration": -4.767848491668701,
+        "recovery_ratio": 1.0,
+        "layer_idx": 7
+      },
+      {
+        "y_clean": -4.998513698577881,
+        "y_corrupt": -0.2306652069091797,
+        "y_patched": -4.998513698577881,
+        "restoration": -4.767848491668701,
+        "recovery_ratio": 1.0,
+        "layer_idx": 8
+      },
+      {
+        "y_clean": -4.998513698577881,
+        "y_corrupt": -0.2306652069091797,
+        "y_patched": -4.998513698577881,
+        "restoration": -4.767848491668701,
+        "recovery_ratio": 1.0,
+        "layer_idx": 9
+      },
+      {
+        "y_clean": -4.998513698577881,
+        "y_corrupt": -0.2306652069091797,
+        "y_patched": -4.998513698577881,
+        "restoration": -4.767848491668701,
+        "recovery_ratio": 1.0,
+        "layer_idx": 10
+      },
+      {
+        "y_clean": -4.998513698577881,
+        "y_corrupt": -0.2306652069091797,
+        "y_patched": -4.998513698577881,
+        "restoration": -4.767848491668701,
+        "recovery_ratio": 1.0,
+        "layer_idx": 11
+      },
+      {
+        "y_clean": -4.998513698577881,
+        "y_corrupt": -0.2306652069091797,
+        "y_patched": -4.998513698577881,
+        "restoration": -4.767848491668701,
+        "recovery_ratio": 1.0,
+        "layer_idx": 12
+      },
+      {
+        "y_clean": -4.998513698577881,
+        "y_corrupt": -0.2306652069091797,
+        "y_patched": -4.998513698577881,
+        "restoration": -4.767848491668701,
+        "recovery_ratio": 1.0,
+        "layer_idx": 13
+      },
+      {
+        "y_clean": -4.998513698577881,
+        "y_corrupt": -0.2306652069091797,
+        "y_patched": -4.998513698577881,
+        "restoration": -4.767848491668701,
+        "recovery_ratio": 1.0,
+        "layer_idx": 14
+      },
+      {
+        "y_clean": -4.998513698577881,
+        "y_corrupt": -0.2306652069091797,
+        "y_patched": -4.998513698577881,
+        "restoration": -4.767848491668701,
+        "recovery_ratio": 1.0,
+        "layer_idx": 15
+      },
+      {
+        "y_clean": -4.998513698577881,
+        "y_corrupt": -0.2306652069091797,
+        "y_patched": -4.998513698577881,
+        "restoration": -4.767848491668701,
+        "recovery_ratio": 1.0,
+        "layer_idx": 16
+      },
+      {
+        "y_clean": -4.998513698577881,
+        "y_corrupt": -0.2306652069091797,
+        "y_patched": -4.998513698577881,
+        "restoration": -4.767848491668701,
+        "recovery_ratio": 1.0,
+        "layer_idx": 17
+      }
+    ],
+    [
+      {
+        "y_clean": -3.154151439666748,
+        "y_corrupt": 2.7321534156799316,
+        "y_patched": -3.154151439666748,
+        "restoration": -5.88630485534668,
+        "recovery_ratio": 1.0,
+        "layer_idx": 0
+      },
+      {
+        "y_clean": -3.154151439666748,
+        "y_corrupt": 2.7321534156799316,
+        "y_patched": -3.154151439666748,
+        "restoration": -5.88630485534668,
+        "recovery_ratio": 1.0,
+        "layer_idx": 1
+      },
+      {
+        "y_clean": -3.154151439666748,
+        "y_corrupt": 2.7321534156799316,
+        "y_patched": -3.154151439666748,
+        "restoration": -5.88630485534668,
+        "recovery_ratio": 1.0,
+        "layer_idx": 2
+      },
+      {
+        "y_clean": -3.154151439666748,
+        "y_corrupt": 2.7321534156799316,
+        "y_patched": -3.154151439666748,
+        "restoration": -5.88630485534668,
+        "recovery_ratio": 1.0,
+        "layer_idx": 3
+      },
+      {
+        "y_clean": -3.154151439666748,
+        "y_corrupt": 2.7321534156799316,
+        "y_patched": -3.154151439666748,
+        "restoration": -5.88630485534668,
+        "recovery_ratio": 1.0,
+        "layer_idx": 4
+      },
+      {
+        "y_clean": -3.154151439666748,
+        "y_corrupt": 2.7321534156799316,
+        "y_patched": -3.154151439666748,
+        "restoration": -5.88630485534668,
+        "recovery_ratio": 1.0,
+        "layer_idx": 5
+      },
+      {
+        "y_clean": -3.154151439666748,
+        "y_corrupt": 2.7321534156799316,
+        "y_patched": -3.154151439666748,
+        "restoration": -5.88630485534668,
+        "recovery_ratio": 1.0,
+        "layer_idx": 6
+      },
+      {
+        "y_clean": -3.154151439666748,
+        "y_corrupt": 2.7321534156799316,
+        "y_patched": -3.154151439666748,
+        "restoration": -5.88630485534668,
+        "recovery_ratio": 1.0,
+        "layer_idx": 7
+      },
+      {
+        "y_clean": -3.154151439666748,
+        "y_corrupt": 2.7321534156799316,
+        "y_patched": -3.154151439666748,
+        "restoration": -5.88630485534668,
+        "recovery_ratio": 1.0,
+        "layer_idx": 8
+      },
+      {
+        "y_clean": -3.154151439666748,
+        "y_corrupt": 2.7321534156799316,
+        "y_patched": -3.154151439666748,
+        "restoration": -5.88630485534668,
+        "recovery_ratio": 1.0,
+        "layer_idx": 9
+      },
+      {
+        "y_clean": -3.154151439666748,
+        "y_corrupt": 2.7321534156799316,
+        "y_patched": -3.154151439666748,
+        "restoration": -5.88630485534668,
+        "recovery_ratio": 1.0,
+        "layer_idx": 10
+      },
+      {
+        "y_clean": -3.154151439666748,
+        "y_corrupt": 2.7321534156799316,
+        "y_patched": -3.154151439666748,
+        "restoration": -5.88630485534668,
+        "recovery_ratio": 1.0,
+        "layer_idx": 11
+      },
+      {
+        "y_clean": -3.154151439666748,
+        "y_corrupt": 2.7321534156799316,
+        "y_patched": -3.154151439666748,
+        "restoration": -5.88630485534668,
+        "recovery_ratio": 1.0,
+        "layer_idx": 12
+      },
+      {
+        "y_clean": -3.154151439666748,
+        "y_corrupt": 2.7321534156799316,
+        "y_patched": -3.154151439666748,
+        "restoration": -5.88630485534668,
+        "recovery_ratio": 1.0,
+        "layer_idx": 13
+      },
+      {
+        "y_clean": -3.154151439666748,
+        "y_corrupt": 2.7321534156799316,
+        "y_patched": -3.154151439666748,
+        "restoration": -5.88630485534668,
+        "recovery_ratio": 1.0,
+        "layer_idx": 14
+      },
+      {
+        "y_clean": -3.154151439666748,
+        "y_corrupt": 2.7321534156799316,
+        "y_patched": -3.154151439666748,
+        "restoration": -5.88630485534668,
+        "recovery_ratio": 1.0,
+        "layer_idx": 15
+      },
+      {
+        "y_clean": -3.154151439666748,
+        "y_corrupt": 2.7321534156799316,
+        "y_patched": -3.154151439666748,
+        "restoration": -5.88630485534668,
+        "recovery_ratio": 1.0,
+        "layer_idx": 16
+      },
+      {
+        "y_clean": -3.154151439666748,
+        "y_corrupt": 2.7321534156799316,
+        "y_patched": -3.154151439666748,
+        "restoration": -5.88630485534668,
+        "recovery_ratio": 1.0,
+        "layer_idx": 17
+      }
+    ],
+    [
+      {
+        "y_clean": -2.0541529655456543,
+        "y_corrupt": -2.029472589492798,
+        "y_patched": -2.0541529655456543,
+        "restoration": -0.024680376052856445,
+        "recovery_ratio": 1.0,
+        "layer_idx": 0
+      },
+      {
+        "y_clean": -2.0541529655456543,
+        "y_corrupt": -2.029472589492798,
+        "y_patched": -2.0541529655456543,
+        "restoration": -0.024680376052856445,
+        "recovery_ratio": 1.0,
+        "layer_idx": 1
+      },
+      {
+        "y_clean": -2.0541529655456543,
+        "y_corrupt": -2.029472589492798,
+        "y_patched": -2.0541529655456543,
+        "restoration": -0.024680376052856445,
+        "recovery_ratio": 1.0,
+        "layer_idx": 2
+      },
+      {
+        "y_clean": -2.0541529655456543,
+        "y_corrupt": -2.029472589492798,
+        "y_patched": -2.0541529655456543,
+        "restoration": -0.024680376052856445,
+        "recovery_ratio": 1.0,
+        "layer_idx": 3
+      },
+      {
+        "y_clean": -2.0541529655456543,
+        "y_corrupt": -2.029472589492798,
+        "y_patched": -2.0541529655456543,
+        "restoration": -0.024680376052856445,
+        "recovery_ratio": 1.0,
+        "layer_idx": 4
+      },
+      {
+        "y_clean": -2.0541529655456543,
+        "y_corrupt": -2.029472589492798,
+        "y_patched": -2.0541529655456543,
+        "restoration": -0.024680376052856445,
+        "recovery_ratio": 1.0,
+        "layer_idx": 5
+      },
+      {
+        "y_clean": -2.0541529655456543,
+        "y_corrupt": -2.029472589492798,
+        "y_patched": -2.0541529655456543,
+        "restoration": -0.024680376052856445,
+        "recovery_ratio": 1.0,
+        "layer_idx": 6
+      },
+      {
+        "y_clean": -2.0541529655456543,
+        "y_corrupt": -2.029472589492798,
+        "y_patched": -2.0541529655456543,
+        "restoration": -0.024680376052856445,
+        "recovery_ratio": 1.0,
+        "layer_idx": 7
+      },
+      {
+        "y_clean": -2.0541529655456543,
+        "y_corrupt": -2.029472589492798,
+        "y_patched": -2.0541529655456543,
+        "restoration": -0.024680376052856445,
+        "recovery_ratio": 1.0,
+        "layer_idx": 8
+      },
+      {
+        "y_clean": -2.0541529655456543,
+        "y_corrupt": -2.029472589492798,
+        "y_patched": -2.0541529655456543,
+        "restoration": -0.024680376052856445,
+        "recovery_ratio": 1.0,
+        "layer_idx": 9
+      },
+      {
+        "y_clean": -2.0541529655456543,
+        "y_corrupt": -2.029472589492798,
+        "y_patched": -2.0541529655456543,
+        "restoration": -0.024680376052856445,
+        "recovery_ratio": 1.0,
+        "layer_idx": 10
+      },
+      {
+        "y_clean": -2.0541529655456543,
+        "y_corrupt": -2.029472589492798,
+        "y_patched": -2.0541529655456543,
+        "restoration": -0.024680376052856445,
+        "recovery_ratio": 1.0,
+        "layer_idx": 11
+      },
+      {
+        "y_clean": -2.0541529655456543,
+        "y_corrupt": -2.029472589492798,
+        "y_patched": -2.0541529655456543,
+        "restoration": -0.024680376052856445,
+        "recovery_ratio": 1.0,
+        "layer_idx": 12
+      },
+      {
+        "y_clean": -2.0541529655456543,
+        "y_corrupt": -2.029472589492798,
+        "y_patched": -2.0541529655456543,
+        "restoration": -0.024680376052856445,
+        "recovery_ratio": 1.0,
+        "layer_idx": 13
+      },
+      {
+        "y_clean": -2.0541529655456543,
+        "y_corrupt": -2.029472589492798,
+        "y_patched": -2.0541529655456543,
+        "restoration": -0.024680376052856445,
+        "recovery_ratio": 1.0,
+        "layer_idx": 14
+      },
+      {
+        "y_clean": -2.0541529655456543,
+        "y_corrupt": -2.029472589492798,
+        "y_patched": -2.0541529655456543,
+        "restoration": -0.024680376052856445,
+        "recovery_ratio": 1.0,
+        "layer_idx": 15
+      },
+      {
+        "y_clean": -2.0541529655456543,
+        "y_corrupt": -2.029472589492798,
+        "y_patched": -2.0541529655456543,
+        "restoration": -0.024680376052856445,
+        "recovery_ratio": 1.0,
+        "layer_idx": 16
+      },
+      {
+        "y_clean": -2.0541529655456543,
+        "y_corrupt": -2.029472589492798,
+        "y_patched": -2.0541529655456543,
+        "restoration": -0.024680376052856445,
+        "recovery_ratio": 1.0,
+        "layer_idx": 17
+      }
+    ],
+    [
+      {
+        "y_clean": 2.3059966564178467,
+        "y_corrupt": 1.4802987575531006,
+        "y_patched": 2.3059966564178467,
+        "restoration": 0.8256978988647461,
+        "recovery_ratio": 1.0,
+        "layer_idx": 0
+      },
+      {
+        "y_clean": 2.3059966564178467,
+        "y_corrupt": 1.4802987575531006,
+        "y_patched": 2.3059966564178467,
+        "restoration": 0.8256978988647461,
+        "recovery_ratio": 1.0,
+        "layer_idx": 1
+      },
+      {
+        "y_clean": 2.3059966564178467,
+        "y_corrupt": 1.4802987575531006,
+        "y_patched": 2.3059966564178467,
+        "restoration": 0.8256978988647461,
+        "recovery_ratio": 1.0,
+        "layer_idx": 2
+      },
+      {
+        "y_clean": 2.3059966564178467,
+        "y_corrupt": 1.4802987575531006,
+        "y_patched": 2.3059966564178467,
+        "restoration": 0.8256978988647461,
+        "recovery_ratio": 1.0,
+        "layer_idx": 3
+      },
+      {
+        "y_clean": 2.3059966564178467,
+        "y_corrupt": 1.4802987575531006,
+        "y_patched": 2.3059966564178467,
+        "restoration": 0.8256978988647461,
+        "recovery_ratio": 1.0,
+        "layer_idx": 4
+      },
+      {
+        "y_clean": 2.3059966564178467,
+        "y_corrupt": 1.4802987575531006,
+        "y_patched": 2.3059966564178467,
+        "restoration": 0.8256978988647461,
+        "recovery_ratio": 1.0,
+        "layer_idx": 5
+      },
+      {
+        "y_clean": 2.3059966564178467,
+        "y_corrupt": 1.4802987575531006,
+        "y_patched": 2.3059966564178467,
+        "restoration": 0.8256978988647461,
+        "recovery_ratio": 1.0,
+        "layer_idx": 6
+      },
+      {
+        "y_clean": 2.3059966564178467,
+        "y_corrupt": 1.4802987575531006,
+        "y_patched": 2.3059966564178467,
+        "restoration": 0.8256978988647461,
+        "recovery_ratio": 1.0,
+        "layer_idx": 7
+      },
+      {
+        "y_clean": 2.3059966564178467,
+        "y_corrupt": 1.4802987575531006,
+        "y_patched": 2.3059966564178467,
+        "restoration": 0.8256978988647461,
+        "recovery_ratio": 1.0,
+        "layer_idx": 8
+      },
+      {
+        "y_clean": 2.3059966564178467,
+        "y_corrupt": 1.4802987575531006,
+        "y_patched": 2.3059966564178467,
+        "restoration": 0.8256978988647461,
+        "recovery_ratio": 1.0,
+        "layer_idx": 9
+      },
+      {
+        "y_clean": 2.3059966564178467,
+        "y_corrupt": 1.4802987575531006,
+        "y_patched": 2.3059966564178467,
+        "restoration": 0.8256978988647461,
+        "recovery_ratio": 1.0,
+        "layer_idx": 10
+      },
+      {
+        "y_clean": 2.3059966564178467,
+        "y_corrupt": 1.4802987575531006,
+        "y_patched": 2.3059966564178467,
+        "restoration": 0.8256978988647461,
+        "recovery_ratio": 1.0,
+        "layer_idx": 11
+      },
+      {
+        "y_clean": 2.3059966564178467,
+        "y_corrupt": 1.4802987575531006,
+        "y_patched": 2.3059966564178467,
+        "restoration": 0.8256978988647461,
+        "recovery_ratio": 1.0,
+        "layer_idx": 12
+      },
+      {
+        "y_clean": 2.3059966564178467,
+        "y_corrupt": 1.4802987575531006,
+        "y_patched": 2.3059966564178467,
+        "restoration": 0.8256978988647461,
+        "recovery_ratio": 1.0,
+        "layer_idx": 13
+      },
+      {
+        "y_clean": 2.3059966564178467,
+        "y_corrupt": 1.4802987575531006,
+        "y_patched": 2.3059966564178467,
+        "restoration": 0.8256978988647461,
+        "recovery_ratio": 1.0,
+        "layer_idx": 14
+      },
+      {
+        "y_clean": 2.3059966564178467,
+        "y_corrupt": 1.4802987575531006,
+        "y_patched": 2.3059966564178467,
+        "restoration": 0.8256978988647461,
+        "recovery_ratio": 1.0,
+        "layer_idx": 15
+      },
+      {
+        "y_clean": 2.3059966564178467,
+        "y_corrupt": 1.4802987575531006,
+        "y_patched": 2.3059966564178467,
+        "restoration": 0.8256978988647461,
+        "recovery_ratio": 1.0,
+        "layer_idx": 16
+      },
+      {
+        "y_clean": 2.3059966564178467,
+        "y_corrupt": 1.4802987575531006,
+        "y_patched": 2.3059966564178467,
+        "restoration": 0.8256978988647461,
+        "recovery_ratio": 1.0,
+        "layer_idx": 17
+      }
+    ],
+    [
+      {
+        "y_clean": 0.9778962135314941,
+        "y_corrupt": 0.7509121894836426,
+        "y_patched": 0.9778962135314941,
+        "restoration": 0.22698402404785156,
+        "recovery_ratio": 1.0,
+        "layer_idx": 0
+      },
+      {
+        "y_clean": 0.9778962135314941,
+        "y_corrupt": 0.7509121894836426,
+        "y_patched": 0.9778962135314941,
+        "restoration": 0.22698402404785156,
+        "recovery_ratio": 1.0,
+        "layer_idx": 1
+      },
+      {
+        "y_clean": 0.9778962135314941,
+        "y_corrupt": 0.7509121894836426,
+        "y_patched": 0.9778962135314941,
+        "restoration": 0.22698402404785156,
+        "recovery_ratio": 1.0,
+        "layer_idx": 2
+      },
+      {
+        "y_clean": 0.9778962135314941,
+        "y_corrupt": 0.7509121894836426,
+        "y_patched": 0.9778962135314941,
+        "restoration": 0.22698402404785156,
+        "recovery_ratio": 1.0,
+        "layer_idx": 3
+      },
+      {
+        "y_clean": 0.9778962135314941,
+        "y_corrupt": 0.7509121894836426,
+        "y_patched": 0.9778962135314941,
+        "restoration": 0.22698402404785156,
+        "recovery_ratio": 1.0,
+        "layer_idx": 4
+      },
+      {
+        "y_clean": 0.9778962135314941,
+        "y_corrupt": 0.7509121894836426,
+        "y_patched": 0.9778962135314941,
+        "restoration": 0.22698402404785156,
+        "recovery_ratio": 1.0,
+        "layer_idx": 5
+      },
+      {
+        "y_clean": 0.9778962135314941,
+        "y_corrupt": 0.7509121894836426,
+        "y_patched": 0.9778962135314941,
+        "restoration": 0.22698402404785156,
+        "recovery_ratio": 1.0,
+        "layer_idx": 6
+      },
+      {
+        "y_clean": 0.9778962135314941,
+        "y_corrupt": 0.7509121894836426,
+        "y_patched": 0.9778962135314941,
+        "restoration": 0.22698402404785156,
+        "recovery_ratio": 1.0,
+        "layer_idx": 7
+      },
+      {
+        "y_clean": 0.9778962135314941,
+        "y_corrupt": 0.7509121894836426,
+        "y_patched": 0.9778962135314941,
+        "restoration": 0.22698402404785156,
+        "recovery_ratio": 1.0,
+        "layer_idx": 8
+      },
+      {
+        "y_clean": 0.9778962135314941,
+        "y_corrupt": 0.7509121894836426,
+        "y_patched": 0.9778962135314941,
+        "restoration": 0.22698402404785156,
+        "recovery_ratio": 1.0,
+        "layer_idx": 9
+      },
+      {
+        "y_clean": 0.9778962135314941,
+        "y_corrupt": 0.7509121894836426,
+        "y_patched": 0.9778962135314941,
+        "restoration": 0.22698402404785156,
+        "recovery_ratio": 1.0,
+        "layer_idx": 10
+      },
+      {
+        "y_clean": 0.9778962135314941,
+        "y_corrupt": 0.7509121894836426,
+        "y_patched": 0.9778962135314941,
+        "restoration": 0.22698402404785156,
+        "recovery_ratio": 1.0,
+        "layer_idx": 11
+      },
+      {
+        "y_clean": 0.9778962135314941,
+        "y_corrupt": 0.7509121894836426,
+        "y_patched": 0.9778962135314941,
+        "restoration": 0.22698402404785156,
+        "recovery_ratio": 1.0,
+        "layer_idx": 12
+      },
+      {
+        "y_clean": 0.9778962135314941,
+        "y_corrupt": 0.7509121894836426,
+        "y_patched": 0.9778962135314941,
+        "restoration": 0.22698402404785156,
+        "recovery_ratio": 1.0,
+        "layer_idx": 13
+      },
+      {
+        "y_clean": 0.9778962135314941,
+        "y_corrupt": 0.7509121894836426,
+        "y_patched": 0.9778962135314941,
+        "restoration": 0.22698402404785156,
+        "recovery_ratio": 1.0,
+        "layer_idx": 14
+      },
+      {
+        "y_clean": 0.9778962135314941,
+        "y_corrupt": 0.7509121894836426,
+        "y_patched": 0.9778962135314941,
+        "restoration": 0.22698402404785156,
+        "recovery_ratio": 1.0,
+        "layer_idx": 15
+      },
+      {
+        "y_clean": 0.9778962135314941,
+        "y_corrupt": 0.7509121894836426,
+        "y_patched": 0.9778962135314941,
+        "restoration": 0.22698402404785156,
+        "recovery_ratio": 1.0,
+        "layer_idx": 16
+      },
+      {
+        "y_clean": 0.9778962135314941,
+        "y_corrupt": 0.7509121894836426,
+        "y_patched": 0.9778962135314941,
+        "restoration": 0.22698402404785156,
+        "recovery_ratio": 1.0,
+        "layer_idx": 17
+      }
+    ],
+    [
+      {
+        "y_clean": -1.8226522207260132,
+        "y_corrupt": -0.5601807236671448,
+        "y_patched": -1.8226522207260132,
+        "restoration": -1.2624714970588684,
+        "recovery_ratio": 1.0,
+        "layer_idx": 0
+      },
+      {
+        "y_clean": -1.8226522207260132,
+        "y_corrupt": -0.5601807236671448,
+        "y_patched": -1.8226522207260132,
+        "restoration": -1.2624714970588684,
+        "recovery_ratio": 1.0,
+        "layer_idx": 1
+      },
+      {
+        "y_clean": -1.8226522207260132,
+        "y_corrupt": -0.5601807236671448,
+        "y_patched": -1.8226522207260132,
+        "restoration": -1.2624714970588684,
+        "recovery_ratio": 1.0,
+        "layer_idx": 2
+      },
+      {
+        "y_clean": -1.8226522207260132,
+        "y_corrupt": -0.5601807236671448,
+        "y_patched": -1.8226522207260132,
+        "restoration": -1.2624714970588684,
+        "recovery_ratio": 1.0,
+        "layer_idx": 3
+      },
+      {
+        "y_clean": -1.8226522207260132,
+        "y_corrupt": -0.5601807236671448,
+        "y_patched": -1.8226522207260132,
+        "restoration": -1.2624714970588684,
+        "recovery_ratio": 1.0,
+        "layer_idx": 4
+      },
+      {
+        "y_clean": -1.8226522207260132,
+        "y_corrupt": -0.5601807236671448,
+        "y_patched": -1.8226522207260132,
+        "restoration": -1.2624714970588684,
+        "recovery_ratio": 1.0,
+        "layer_idx": 5
+      },
+      {
+        "y_clean": -1.8226522207260132,
+        "y_corrupt": -0.5601807236671448,
+        "y_patched": -1.8226522207260132,
+        "restoration": -1.2624714970588684,
+        "recovery_ratio": 1.0,
+        "layer_idx": 6
+      },
+      {
+        "y_clean": -1.8226522207260132,
+        "y_corrupt": -0.5601807236671448,
+        "y_patched": -1.8226522207260132,
+        "restoration": -1.2624714970588684,
+        "recovery_ratio": 1.0,
+        "layer_idx": 7
+      },
+      {
+        "y_clean": -1.8226522207260132,
+        "y_corrupt": -0.5601807236671448,
+        "y_patched": -1.8226522207260132,
+        "restoration": -1.2624714970588684,
+        "recovery_ratio": 1.0,
+        "layer_idx": 8
+      },
+      {
+        "y_clean": -1.8226522207260132,
+        "y_corrupt": -0.5601807236671448,
+        "y_patched": -1.8226522207260132,
+        "restoration": -1.2624714970588684,
+        "recovery_ratio": 1.0,
+        "layer_idx": 9
+      },
+      {
+        "y_clean": -1.8226522207260132,
+        "y_corrupt": -0.5601807236671448,
+        "y_patched": -1.8226522207260132,
+        "restoration": -1.2624714970588684,
+        "recovery_ratio": 1.0,
+        "layer_idx": 10
+      },
+      {
+        "y_clean": -1.8226522207260132,
+        "y_corrupt": -0.5601807236671448,
+        "y_patched": -1.8226522207260132,
+        "restoration": -1.2624714970588684,
+        "recovery_ratio": 1.0,
+        "layer_idx": 11
+      },
+      {
+        "y_clean": -1.8226522207260132,
+        "y_corrupt": -0.5601807236671448,
+        "y_patched": -1.8226522207260132,
+        "restoration": -1.2624714970588684,
+        "recovery_ratio": 1.0,
+        "layer_idx": 12
+      },
+      {
+        "y_clean": -1.8226522207260132,
+        "y_corrupt": -0.5601807236671448,
+        "y_patched": -1.8226522207260132,
+        "restoration": -1.2624714970588684,
+        "recovery_ratio": 1.0,
+        "layer_idx": 13
+      },
+      {
+        "y_clean": -1.8226522207260132,
+        "y_corrupt": -0.5601807236671448,
+        "y_patched": -1.8226522207260132,
+        "restoration": -1.2624714970588684,
+        "recovery_ratio": 1.0,
+        "layer_idx": 14
+      },
+      {
+        "y_clean": -1.8226522207260132,
+        "y_corrupt": -0.5601807236671448,
+        "y_patched": -1.8226522207260132,
+        "restoration": -1.2624714970588684,
+        "recovery_ratio": 1.0,
+        "layer_idx": 15
+      },
+      {
+        "y_clean": -1.8226522207260132,
+        "y_corrupt": -0.5601807236671448,
+        "y_patched": -1.8226522207260132,
+        "restoration": -1.2624714970588684,
+        "recovery_ratio": 1.0,
+        "layer_idx": 16
+      },
+      {
+        "y_clean": -1.8226522207260132,
+        "y_corrupt": -0.5601807236671448,
+        "y_patched": -1.8226522207260132,
+        "restoration": -1.2624714970588684,
+        "recovery_ratio": 1.0,
+        "layer_idx": 17
+      }
+    ],
+    [
+      {
+        "y_clean": 0.27086398005485535,
+        "y_corrupt": 0.06804941594600677,
+        "y_patched": 0.27086398005485535,
+        "restoration": 0.20281456410884857,
+        "recovery_ratio": 1.0,
+        "layer_idx": 0
+      },
+      {
+        "y_clean": 0.27086398005485535,
+        "y_corrupt": 0.06804941594600677,
+        "y_patched": 0.27086398005485535,
+        "restoration": 0.20281456410884857,
+        "recovery_ratio": 1.0,
+        "layer_idx": 1
+      },
+      {
+        "y_clean": 0.27086398005485535,
+        "y_corrupt": 0.06804941594600677,
+        "y_patched": 0.27086398005485535,
+        "restoration": 0.20281456410884857,
+        "recovery_ratio": 1.0,
+        "layer_idx": 2
+      },
+      {
+        "y_clean": 0.27086398005485535,
+        "y_corrupt": 0.06804941594600677,
+        "y_patched": 0.27086398005485535,
+        "restoration": 0.20281456410884857,
+        "recovery_ratio": 1.0,
+        "layer_idx": 3
+      },
+      {
+        "y_clean": 0.27086398005485535,
+        "y_corrupt": 0.06804941594600677,
+        "y_patched": 0.27086398005485535,
+        "restoration": 0.20281456410884857,
+        "recovery_ratio": 1.0,
+        "layer_idx": 4
+      },
+      {
+        "y_clean": 0.27086398005485535,
+        "y_corrupt": 0.06804941594600677,
+        "y_patched": 0.27086398005485535,
+        "restoration": 0.20281456410884857,
+        "recovery_ratio": 1.0,
+        "layer_idx": 5
+      },
+      {
+        "y_clean": 0.27086398005485535,
+        "y_corrupt": 0.06804941594600677,
+        "y_patched": 0.27086398005485535,
+        "restoration": 0.20281456410884857,
+        "recovery_ratio": 1.0,
+        "layer_idx": 6
+      },
+      {
+        "y_clean": 0.27086398005485535,
+        "y_corrupt": 0.06804941594600677,
+        "y_patched": 0.27086398005485535,
+        "restoration": 0.20281456410884857,
+        "recovery_ratio": 1.0,
+        "layer_idx": 7
+      },
+      {
+        "y_clean": 0.27086398005485535,
+        "y_corrupt": 0.06804941594600677,
+        "y_patched": 0.27086398005485535,
+        "restoration": 0.20281456410884857,
+        "recovery_ratio": 1.0,
+        "layer_idx": 8
+      },
+      {
+        "y_clean": 0.27086398005485535,
+        "y_corrupt": 0.06804941594600677,
+        "y_patched": 0.27086398005485535,
+        "restoration": 0.20281456410884857,
+        "recovery_ratio": 1.0,
+        "layer_idx": 9
+      },
+      {
+        "y_clean": 0.27086398005485535,
+        "y_corrupt": 0.06804941594600677,
+        "y_patched": 0.27086398005485535,
+        "restoration": 0.20281456410884857,
+        "recovery_ratio": 1.0,
+        "layer_idx": 10
+      },
+      {
+        "y_clean": 0.27086398005485535,
+        "y_corrupt": 0.06804941594600677,
+        "y_patched": 0.27086398005485535,
+        "restoration": 0.20281456410884857,
+        "recovery_ratio": 1.0,
+        "layer_idx": 11
+      },
+      {
+        "y_clean": 0.27086398005485535,
+        "y_corrupt": 0.06804941594600677,
+        "y_patched": 0.27086398005485535,
+        "restoration": 0.20281456410884857,
+        "recovery_ratio": 1.0,
+        "layer_idx": 12
+      },
+      {
+        "y_clean": 0.27086398005485535,
+        "y_corrupt": 0.06804941594600677,
+        "y_patched": 0.27086398005485535,
+        "restoration": 0.20281456410884857,
+        "recovery_ratio": 1.0,
+        "layer_idx": 13
+      },
+      {
+        "y_clean": 0.27086398005485535,
+        "y_corrupt": 0.06804941594600677,
+        "y_patched": 0.27086398005485535,
+        "restoration": 0.20281456410884857,
+        "recovery_ratio": 1.0,
+        "layer_idx": 14
+      },
+      {
+        "y_clean": 0.27086398005485535,
+        "y_corrupt": 0.06804941594600677,
+        "y_patched": 0.27086398005485535,
+        "restoration": 0.20281456410884857,
+        "recovery_ratio": 1.0,
+        "layer_idx": 15
+      },
+      {
+        "y_clean": 0.27086398005485535,
+        "y_corrupt": 0.06804941594600677,
+        "y_patched": 0.27086398005485535,
+        "restoration": 0.20281456410884857,
+        "recovery_ratio": 1.0,
+        "layer_idx": 16
+      },
+      {
+        "y_clean": 0.27086398005485535,
+        "y_corrupt": 0.06804941594600677,
+        "y_patched": 0.27086398005485535,
+        "restoration": 0.20281456410884857,
+        "recovery_ratio": 1.0,
+        "layer_idx": 17
+      }
+    ]
+  ]
+}

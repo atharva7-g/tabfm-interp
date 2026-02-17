@@ -298,7 +298,7 @@ class TestLabelTokenVerifier:
         # Token index info
         if "token_index" in self.verification_results:
             token_data = self.verification_results["token_index"]
-            print(f"\nTest Label Token Index:")
+            print("\nTest Label Token Index:")
             print(f"  Index: {token_data.get('index')}")
             print(f"  Num test samples: {token_data.get('num_test_samples')}")
             print(f"  Num features: {token_data.get('num_features')}")
@@ -307,19 +307,19 @@ class TestLabelTokenVerifier:
         # Validation summary
         if "validation_summary" in self.verification_results:
             summary = self.verification_results["validation_summary"]
-            print(f"\nValidation Summary:")
+            print("\nValidation Summary:")
             print(f"  Token index valid: {summary.get('token_index_valid')}")
             print(f"  Shapes valid: {summary.get('shapes_valid')}")
             print(f"  Values valid: {summary.get('values_valid')}")
             print(f"  Overall valid: {summary.get('overall_valid')}")
 
             if summary.get("errors"):
-                print(f"\n  Errors:")
+                print("\n  Errors:")
                 for error in summary["errors"]:
                     print(f"    - {error}")
 
         # Layer details
-        print(f"\nLayer Verification Details:")
+        print("\nLayer Verification Details:")
         for layer_name, layer_results in self.verification_results.items():
             if layer_name in ["token_index", "output_samples", "validation_summary"]:
                 continue

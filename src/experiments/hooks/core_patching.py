@@ -1,9 +1,9 @@
-from typing import Callable, Dict, List, Optional, Union, cast
+from typing import Callable, Dict, List, Optional, Union
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
 from tabpfn import TabPFNRegressor
-from src.utils.model_inspector import ModelInspector, inspect_model
+from src.utils.model_inspector import ModelInspector
 from src.utils.shape_inspector import ShapeInspector
 
 
@@ -62,8 +62,8 @@ def create_patch_hook(
 ) -> Callable:
     """Create a hook function that patches activations from clean to corrupted runs."""
     if patch_dim is None:
-
         print("Patch dimension is null. Patching full layer.")
+
         def full_layer_hook(module, inputs, output):
             if isinstance(output, (tuple, list)):
                 output_list = [cached_activation.clone()]

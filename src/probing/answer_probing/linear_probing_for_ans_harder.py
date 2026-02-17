@@ -1,12 +1,9 @@
 import torch
 import numpy as np
 from sklearn.metrics import mean_squared_error, r2_score
-from sklearn.model_selection import train_test_split
 from tabpfn import TabPFNRegressor
-import torch.nn as nn
-from typing import List, Tuple, Dict
+from typing import Tuple, Dict
 from sklearn.linear_model import LinearRegression
-import matplotlib.pyplot as plt
 
 
 def set_seed(seed):
@@ -25,9 +22,12 @@ def set_seed(seed):
 #         y += np.random.randn(num_samples)
 #     return X, y
 
-def create_dummy_dataset(num_samples: int = 1000, bias: bool = False) -> Tuple[np.ndarray, np.ndarray]:
+
+def create_dummy_dataset(
+    num_samples: int = 1000, bias: bool = False
+) -> Tuple[np.ndarray, np.ndarray]:
     """
-    Create a dummy dataset where each input X has 4 values: a, b, c, d, 
+    Create a dummy dataset where each input X has 4 values: a, b, c, d,
     and the target y = a * b + c
     """
     X = np.random.randn(num_samples, 3)
@@ -42,25 +42,28 @@ def create_dummy_dataset(num_samples: int = 1000, bias: bool = False) -> Tuple[n
 
 def train_model(X: np.ndarray, y: np.ndarray) -> Tuple[TabPFNRegressor, float, float]:
     """Train a TabPFN model on the given dataset"""
-    regressor = TabPFNRegressor(device='cuda', n_estimators=1)
+    regressor = TabPFNRegressor(device="cuda", n_estimators=1)
     regressor.fit(X, y)
     return regressor
 
 
-def extract_activations(regressor, model, X_data: np.ndarray, device: str = 'cuda') -> Dict[str, torch.Tensor]:
+def extract_activations(
+    regressor, model, X_data: np.ndarray, device: str = "cuda"
+) -> Dict[str, torch.Tensor]:
     """Extract activations from all transformer layers"""
     activations = {}
 
     def get_activation(name):
         def hook(model, input, output):
-            activations[name] = output[0].detach()[-len(X_data):]
+            activations[name] = output[0].detach()[-len(X_data) :]
             print(f"Layer {name} activations shape: {activations[name].shape}")
+
         return hook
 
     # Register hooks for all transformer layers
     hook_handles = []
     for i, layer in enumerate(model.transformer_encoder.layers):
-        handle = layer.register_forward_hook(get_activation(f'layer_{i}'))
+        handle = layer.register_forward_hook(get_activation(f"layer_{i}"))
         hook_handles.append(handle)
 
     # Forward pass to extract activations
@@ -87,7 +90,8 @@ def main():
 
     regressor = train_model(X_train, y_train)
     activations = extract_activations(
-        regressor, regressor.model_, X_test, device='cuda')
+        regressor, regressor.model_, X_test, device="cuda"
+    )
 
     layer_ids = []
     train_r2_scores = []
@@ -107,7 +111,7 @@ def main():
         if np.isnan(linear_train).any() or np.isinf(linear_train).any():
             print(f"Warning: {layer} contains NaN or Inf values in activations")
             continue
-        
+
         # Always normalize to prevent overflow and improve numerical stability
         train_mean = linear_train.mean(axis=0, keepdims=True)
         train_std = linear_train.std(axis=0, keepdims=True) + 1e-8
@@ -117,7 +121,7 @@ def main():
         model = LinearRegression()
         try:
             model.fit(linear_train, linear_y_train)
-            
+
             # Check predictions for NaN
             train_pred = model.predict(linear_train)
             if np.isnan(train_pred).any() or np.isinf(train_pred).any():
@@ -133,13 +137,15 @@ def main():
         train_r2 = model.score(linear_train, linear_y_train)
         print(f"Layer {layer} train mse: {train_mse:.4f}")
         print(f"Layer {layer} train r2 score: {train_r2:.4f}")
-        
+
         test_pred = model.predict(linear_test)
         if np.isnan(test_pred).any() or np.isinf(test_pred).any():
-            print(f"Warning: {layer} test predictions contain NaN/Inf, skipping test metrics")
+            print(
+                f"Warning: {layer} test predictions contain NaN/Inf, skipping test metrics"
+            )
             print("--------------------------------")
             continue
-        
+
         test_mse = mean_squared_error(linear_y_test, test_pred)
         test_r2 = r2_score(linear_y_test, test_pred)
         print(f"Layer {layer} test mse: {test_mse:.4f}")
@@ -148,7 +154,7 @@ def main():
 
         # Track metrics for plotting
         try:
-            layer_idx = int(layer.split('_')[-1])
+            layer_idx = int(layer.split("_")[-1])
         except ValueError:
             layer_idx = layer
         layer_ids.append(layer_idx)
