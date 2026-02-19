@@ -91,177 +91,201 @@ def main():
 
         set_seed(config["seed"])
 
-    device = config["device"] or ("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"Using device: {device}")
+        device = config["device"] or ("cuda" if torch.cuda.is_available() else "cpu")
+        print(f"Using device: {device}")
 
-    print(f"\nDataset: {config['dataset_type']}")
-    formula = get_dataset_formula(config["dataset_type"])
-    print(f"Formula: {formula}")
-    print(f"\nCreating dataset with {config['n_samples']} samples...")
-    X, y = create_dataset(
-        config["dataset_type"], num_samples=config["n_samples"], seed=config["seed"]
-    )
-
-    from sklearn.model_selection import train_test_split
-
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=config["test_size"], random_state=config["seed"]
-    )
-
-    X_clean = X_test[0:1]
-    print(f"Test sample shape: {X_clean.shape}")
-    print(
-        f"Test sample values: a={X_clean[0, 0]:.4f}, b={X_clean[0, 1]:.4f}, c={X_clean[0, 2]:.4f}"
-    )
-
-    X_corrupt = create_corrupted_input(
-        X_clean,
-        corrupt_idx=config["corrupt_idx"],
-        noise_std=config["noise_std"],
-        seed=config["seed"],
-    )
-    print(f"Corrupted input: b={X_corrupt[0, config['corrupt_idx']]:.4f} (noise)")
-
-    print("\nLoading TabPFN model...")
-
-    regressor = TabPFNRegressor(device=device, n_estimators=1)
-    regressor.fit(X_train, y_train)
-    print("Model fitted successfully")
-
-    patch_dim = config.get("patch_dim", 2)
-    exp_config = ExperimentConfig(
-        corrupt_idx=config["corrupt_idx"],
-        noise_std=config["noise_std"],
-        seed=config["seed"],
-        n_train_samples=len(X_train),
-        patch_dim=patch_dim,
-    )
-
-    script_path = str(Path(__file__).relative_to(Path.cwd()))
-    dataset_output_dir = Path(config["output_dir"]) / config["dataset_type"]
-    experiment = AttentionPatchingExperiment(
-        regressor=regressor,
-        config=exp_config,
-        output_dir=str(dataset_output_dir),
-        script_path=script_path,
-    )
-
-    print("\n" + "=" * 60)
-    print("RUNNING ATTENTION HEAD PATCHING EXPERIMENT")
-    print("=" * 60)
-
-    all_summaries = []
-
-    if patch_dim is None:
-        summary, raw_results = experiment.patch_full_layer(
-            X_clean=X_clean,
-            X_corrupt=X_corrupt,
-        )
-        all_summaries.append(summary)
-        experiment.save_full_layer_results(summary, raw_results, script_path)
-
-        best_idx = summary["layer_indices"].index(summary["best_layer"])
-        tracker.log_patching_layer(
-            layer_idx=summary["best_layer"],
-            restoration=summary["restorations"][best_idx],
-            recovery_ratio=summary["best_recovery"],
+        print(f"\nDataset: {config['dataset_type']}")
+        formula = get_dataset_formula(config["dataset_type"])
+        print(f"Formula: {formula}")
+        print(f"\nCreating dataset with {config['n_samples']} samples...")
+        X, y = create_dataset(
+            config["dataset_type"],
+            num_samples=config["n_samples"],
+            seed=config["seed"],
         )
 
+        from sklearn.model_selection import train_test_split
+
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=config["test_size"], random_state=config["seed"]
+        )
+
+        X_clean = X_test[0:1]
+        print(f"Test sample shape: {X_clean.shape}")
         print(
-            f"  Best recovery: {summary['best_recovery'] * 100:.2f}% at layer {summary['best_layer']}"
+            f"Test sample values: a={X_clean[0, 0]:.4f}, b={X_clean[0, 1]:.4f}, c={X_clean[0, 2]:.4f}"
         )
-    else:
-        for head_idx in config["heads"]:
-            summary, raw_results = experiment.patch_single_head(
-                head_idx=head_idx,
+
+        X_corrupt = create_corrupted_input(
+            X_clean,
+            corrupt_idx=config["corrupt_idx"],
+            noise_std=config["noise_std"],
+            seed=config["seed"],
+        )
+        print(f"Corrupted input: b={X_corrupt[0, config['corrupt_idx']]:.4f} (noise)")
+
+        print("\nLoading TabPFN model...")
+
+        regressor = TabPFNRegressor(device=device, n_estimators=1)
+        regressor.fit(X_train, y_train)
+        print("Model fitted successfully")
+
+        patch_dim = config.get("patch_dim", 2)
+        exp_config = ExperimentConfig(
+            corrupt_idx=config["corrupt_idx"],
+            noise_std=config["noise_std"],
+            seed=config["seed"],
+            n_train_samples=len(X_train),
+            patch_dim=patch_dim,
+        )
+
+        script_path = str(Path(__file__).relative_to(Path.cwd()))
+        dataset_output_dir = Path(config["output_dir"]) / config["dataset_type"]
+        experiment = AttentionPatchingExperiment(
+            regressor=regressor,
+            config=exp_config,
+            output_dir=str(dataset_output_dir),
+            script_path=script_path,
+        )
+
+        print("\n" + "=" * 60)
+        print("RUNNING ATTENTION HEAD PATCHING EXPERIMENT")
+        print("=" * 60)
+
+        all_summaries = []
+
+        if patch_dim is None:
+            summary, raw_results = experiment.patch_full_layer(
                 X_clean=X_clean,
                 X_corrupt=X_corrupt,
             )
             all_summaries.append(summary)
-
-            experiment.save_head_results(head_idx, summary, raw_results, script_path)
+            experiment.save_full_layer_results(summary, raw_results, script_path)
 
             best_idx = summary["layer_indices"].index(summary["best_layer"])
             tracker.log_patching_layer(
                 layer_idx=summary["best_layer"],
                 restoration=summary["restorations"][best_idx],
                 recovery_ratio=summary["best_recovery"],
-                head_idx=head_idx,
             )
 
             print(
                 f"  Best recovery: {summary['best_recovery'] * 100:.2f}% at layer {summary['best_layer']}"
             )
+        else:
+            for head_idx in config["heads"]:
+                summary, raw_results = experiment.patch_single_head(
+                    head_idx=head_idx,
+                    X_clean=X_clean,
+                    X_corrupt=X_corrupt,
+                )
+                all_summaries.append(summary)
 
-    if len(all_summaries) > 1:
+                experiment.save_head_results(
+                    head_idx, summary, raw_results, script_path
+                )
+
+                best_idx = summary["layer_indices"].index(summary["best_layer"])
+                tracker.log_patching_layer(
+                    layer_idx=summary["best_layer"],
+                    restoration=summary["restorations"][best_idx],
+                    recovery_ratio=summary["best_recovery"],
+                    head_idx=head_idx,
+                )
+
+                print(
+                    f"  Best recovery: {summary['best_recovery'] * 100:.2f}% at layer {summary['best_layer']}"
+                )
+
+        if len(all_summaries) > 1:
+            print("\n" + "=" * 60)
+            experiment.create_comparison_plot(all_summaries, script_path)
+            experiment.create_heatmap(all_summaries, script_path)
+
         print("\n" + "=" * 60)
-        experiment.create_comparison_plot(all_summaries, script_path)
-        experiment.create_heatmap(all_summaries, script_path)
+        print("EXPERIMENT SUMMARY")
+        print("=" * 60)
+        print(f"\nClean output: {all_summaries[0]['y_clean']:.6f}")
+        print(f"Corrupted output: {all_summaries[0]['y_corrupt']:.6f}")
 
-    print("\n" + "=" * 60)
-    print("EXPERIMENT SUMMARY")
-    print("=" * 60)
-    print(f"\nClean output: {all_summaries[0]['y_clean']:.6f}")
-    print(f"Corrupted output: {all_summaries[0]['y_corrupt']:.6f}")
-
-    if patch_dim is None:
-        print("\nFull layer patching results:")
-        print(f"{'Layer':<8} {'Best Recovery':<15}")
-        print("-" * 25)
-        print(
-            f"{all_summaries[0]['best_layer']:<8} {all_summaries[0]['best_recovery'] * 100:<15.2f}%"
-        )
-        print(
-            f"\nBest layer overall: {all_summaries[0]['best_layer']} ({all_summaries[0]['best_recovery'] * 100:.2f}% recovery)"
-        )
-    else:
-        print("\nHead-by-head results:")
-        print(f"{'Head':<8} {'Best Recovery':<15} {'Best Layer':<12}")
-        print("-" * 35)
-        for summary in all_summaries:
+        if patch_dim is None:
+            print("\nFull layer patching results:")
+            print(f"{'Layer':<8} {'Best Recovery':<15}")
+            print("-" * 25)
             print(
-                f"{summary['head_idx']:<8} {summary['best_recovery'] * 100:<15.2f}% {summary['best_layer']:<12}"
+                f"{all_summaries[0]['best_layer']:<8} {all_summaries[0]['best_recovery'] * 100:<15.2f}%"
+            )
+            print(
+                f"\nBest layer overall: {all_summaries[0]['best_layer']} ({all_summaries[0]['best_recovery'] * 100:.2f}% recovery)"
+            )
+        else:
+            print("\nHead-by-head results:")
+            print(f"{'Head':<8} {'Best Recovery':<15} {'Best Layer':<12}")
+            print("-" * 35)
+            for summary in all_summaries:
+                print(
+                    f"{summary['head_idx']:<8} {summary['best_recovery'] * 100:<15.2f}% {summary['best_layer']:<12}"
+                )
+
+            best_head = max(all_summaries, key=lambda x: x["best_recovery"])
+            print(
+                f"\nBest head overall: {best_head['head_idx']} ({best_head['best_recovery'] * 100:.2f}% recovery)"
             )
 
-        best_head = max(all_summaries, key=lambda x: x["best_recovery"])
-        print(
-            f"\nBest head overall: {best_head['head_idx']} ({best_head['best_recovery'] * 100:.2f}% recovery)"
-        )
+        if experiment.created_images:
+            # Build captions for each image based on filename and context
+            image_captions = {}
+            dataset_name = config["dataset_type"]
+            corrupt_info = (
+                f"corrupt_idx={config['corrupt_idx']}, noise_std={config['noise_std']}"
+            )
 
-    artifact_paths = []
-    if len(all_summaries) > 1:
-        comparison_plot = dataset_output_dir / "recovery_comparison.png"
-        heatmap_plot = dataset_output_dir / "recovery_heatmap.png"
-        if comparison_plot.exists():
-            artifact_paths.append(comparison_plot)
-        if heatmap_plot.exists():
-            artifact_paths.append(heatmap_plot)
+            for img_path in experiment.created_images:
+                filename = img_path.name
+                if "full_layer_restoration" in filename:
+                    caption = (
+                        f"Full layer restoration - {dataset_name} - {corrupt_info}"
+                    )
+                elif "head_" in filename and "restoration" in filename:
+                    # Extract head_idx from filename like "head_0_restoration_123456.png"
+                    head_idx = filename.split("head_")[1].split("_")[0]
+                    caption = (
+                        f"Head {head_idx} restoration - {dataset_name} - {corrupt_info}"
+                    )
+                elif "comparison_all_heads" in filename:
+                    heads = config["heads"]
+                    caption = f"Restoration comparison across heads {heads} - {dataset_name} - {corrupt_info}"
+                elif "comparison_heatmap" in filename:
+                    caption = f"Recovery heatmap (layers x heads) - {dataset_name} - {corrupt_info}"
+                else:
+                    caption = f"{filename} - {dataset_name} - {corrupt_info}"
 
-    if artifact_paths:
-        tracker.log_artifacts(artifact_paths)
+                image_captions[img_path] = caption
 
-    if patch_dim is None:
-        tracker.log_summary(
-            y_clean=all_summaries[0]["y_clean"],
-            y_corrupt=all_summaries[0]["y_corrupt"],
-            best_recovery=all_summaries[0]["best_recovery"],
-            best_layer=all_summaries[0]["best_layer"],
-            patch_type="full_layer",
-        )
-    else:
-        best_overall = max(all_summaries, key=lambda x: x["best_recovery"])
-        tracker.log_summary(
-            y_clean=all_summaries[0]["y_clean"],
-            y_corrupt=all_summaries[0]["y_corrupt"],
-            best_recovery=best_overall["best_recovery"],
-            best_layer=best_overall["best_layer"],
-            best_head=best_overall["head_idx"],
-            heads_tested=len(config["heads"]),
-            patch_type="attention_heads",
-        )
+            tracker.log_artifacts(image_captions)
 
-    print(f"\nResults saved to: {dataset_output_dir}/")
-    print("=" * 60)
+        if patch_dim is None:
+            tracker.log_summary(
+                y_clean=all_summaries[0]["y_clean"],
+                y_corrupt=all_summaries[0]["y_corrupt"],
+                best_recovery=all_summaries[0]["best_recovery"],
+                best_layer=all_summaries[0]["best_layer"],
+                patch_type="full_layer",
+            )
+        else:
+            best_overall = max(all_summaries, key=lambda x: x["best_recovery"])
+            tracker.log_summary(
+                y_clean=all_summaries[0]["y_clean"],
+                y_corrupt=all_summaries[0]["y_corrupt"],
+                best_recovery=best_overall["best_recovery"],
+                best_layer=best_overall["best_layer"],
+                best_head=best_overall["head_idx"],
+                heads_tested=len(config["heads"]),
+                patch_type="attention_heads",
+            )
+
+        print(f"\nResults saved to: {dataset_output_dir}/")
+        print("=" * 60)
 
 
 if __name__ == "__main__":

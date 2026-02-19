@@ -28,6 +28,7 @@ class AttentionPatchingExperiment(BaseExperiment):
         self.regressor = regressor
         self.config = config
         self.script_path = script_path
+        self.created_images: list = []
 
     def patch_single_head(
         self, head_idx: int, X_clean: np.ndarray, X_corrupt: np.ndarray
@@ -214,10 +215,10 @@ class AttentionPatchingExperiment(BaseExperiment):
 
         plt.tight_layout()
 
-        save_path = self.output_dir / "full_layer" / f"restoration_{self.timestamp}.png"
-        save_path.parent.mkdir(parents=True, exist_ok=True)
+        save_path = self.output_dir / f"full_layer_restoration_{self.timestamp}.png"
         plt.savefig(save_path, dpi=150, bbox_inches="tight")
         plt.close()
+        self.created_images.append(save_path)
         print(f"  Saved plot: {save_path}")
 
     def _plot_single_head(self, summary: Dict, head_idx: int):
@@ -265,11 +266,11 @@ class AttentionPatchingExperiment(BaseExperiment):
         plt.tight_layout()
 
         save_path = (
-            self.output_dir / f"head_{head_idx}" / f"restoration_{self.timestamp}.png"
+            self.output_dir / f"head_{head_idx}_restoration_{self.timestamp}.png"
         )
-        save_path.parent.mkdir(parents=True, exist_ok=True)
         plt.savefig(save_path, dpi=150, bbox_inches="tight")
         plt.close()
+        self.created_images.append(save_path)
         print(f"  Saved plot: {save_path}")
 
     def create_comparison_plot(self, all_summaries: List[Dict], script_path: str):
@@ -329,10 +330,10 @@ class AttentionPatchingExperiment(BaseExperiment):
 
         plt.tight_layout()
 
-        save_path = self.output_dir / "comparisons" / f"all_heads_{self.timestamp}.png"
-        save_path.parent.mkdir(parents=True, exist_ok=True)
+        save_path = self.output_dir / f"comparison_all_heads_{self.timestamp}.png"
         plt.savefig(save_path, dpi=150, bbox_inches="tight")
         plt.close()
+        self.created_images.append(save_path)
         print(f"  Saved comparison plot: {save_path}")
 
         # Save combined metadata
@@ -381,10 +382,10 @@ class AttentionPatchingExperiment(BaseExperiment):
 
         plt.tight_layout()
 
-        save_path = self.output_dir / "comparisons" / f"heatmap_{self.timestamp}.png"
-        save_path.parent.mkdir(parents=True, exist_ok=True)
+        save_path = self.output_dir / f"comparison_heatmap_{self.timestamp}.png"
         plt.savefig(save_path, dpi=150, bbox_inches="tight")
         plt.close()
+        self.created_images.append(save_path)
         print(f"  Saved heatmap: {save_path}")
 
         # Save heatmap data as tensor

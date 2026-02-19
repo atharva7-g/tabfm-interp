@@ -10,3 +10,4 @@ llm/test.py
 .idea
 /logs/
 /src/experiments/hooks/results/
+/.aim/
