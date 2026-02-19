@@ -196,9 +196,42 @@ class AimExperimentTracker:
         restoration: float,
         recovery_ratio: float,
         head_idx: Optional[int] = None,
+        token_idx: Optional[int] = None,
     ) -> None:
-        context = {"head": head_idx} if head_idx is not None else None
+        if token_idx is not None:
+            context = {"token": token_idx}
+        elif head_idx is not None:
+            context = {"head": head_idx}
+        else:
+            context = None
         log_patching_metrics(self.run, layer_idx, restoration, recovery_ratio, context)
+
+    def log_ablation_layer(
+        self,
+        layer_idx: int,
+        effect: float,
+        ratio: float,
+        head_idx: Optional[int] = None,
+        token_idx: Optional[int] = None,
+    ) -> None:
+        context = {}
+        if token_idx is not None:
+            context["token"] = token_idx
+        if head_idx is not None:
+            context["head"] = head_idx
+
+        self.run.track(
+            effect,
+            name="ablation_effect",
+            context=context if context else None,
+            step=layer_idx,
+        )
+        self.run.track(
+            ratio,
+            name="ablation_ratio",
+            context=context if context else None,
+            step=layer_idx,
+        )
 
     def log_summary(
         self,

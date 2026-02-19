@@ -172,6 +172,30 @@ def main():
             print(
                 f"  Best recovery: {summary['best_recovery'] * 100:.2f}% at layer {summary['best_layer']}"
             )
+        elif patch_dim == 1:
+            for token_idx in config["tokens"]:
+                summary, raw_results = experiment.patch_single_token(
+                    token_idx=token_idx,
+                    X_clean=X_clean,
+                    X_corrupt=X_corrupt,
+                )
+                all_summaries.append(summary)
+
+                experiment.save_token_results(
+                    token_idx, summary, raw_results, script_path
+                )
+
+                best_idx = summary["layer_indices"].index(summary["best_layer"])
+                tracker.log_patching_layer(
+                    layer_idx=summary["best_layer"],
+                    restoration=summary["restorations"][best_idx],
+                    recovery_ratio=summary["best_recovery"],
+                    token_idx=token_idx,
+                )
+
+                print(
+                    f"  Best recovery: {summary['best_recovery'] * 100:.2f}% at layer {summary['best_layer']}"
+                )
         else:
             for head_idx in config["heads"]:
                 summary, raw_results = experiment.patch_single_head(
@@ -217,6 +241,19 @@ def main():
             )
             print(
                 f"\nBest layer overall: {all_summaries[0]['best_layer']} ({all_summaries[0]['best_recovery'] * 100:.2f}% recovery)"
+            )
+        elif patch_dim == 1:
+            print("\nToken-by-token results:")
+            print(f"{'Token':<8} {'Best Recovery':<15} {'Best Layer':<12}")
+            print("-" * 35)
+            for summary in all_summaries:
+                print(
+                    f"{summary['token_idx']:<8} {summary['best_recovery'] * 100:<15.2f}% {summary['best_layer']:<12}"
+                )
+
+            best_token = max(all_summaries, key=lambda x: x["best_recovery"])
+            print(
+                f"\nBest token overall: {best_token['token_idx']} ({best_token['best_recovery'] * 100:.2f}% recovery)"
             )
         else:
             print("\nHead-by-head results:")
@@ -271,6 +308,17 @@ def main():
                 best_recovery=all_summaries[0]["best_recovery"],
                 best_layer=all_summaries[0]["best_layer"],
                 patch_type="full_layer",
+            )
+        elif patch_dim == 1:
+            best_overall = max(all_summaries, key=lambda x: x["best_recovery"])
+            tracker.log_summary(
+                y_clean=all_summaries[0]["y_clean"],
+                y_corrupt=all_summaries[0]["y_corrupt"],
+                best_recovery=best_overall["best_recovery"],
+                best_layer=best_overall["best_layer"],
+                best_token=best_overall["token_idx"],
+                tokens_tested=len(config["tokens"]),
+                patch_type="tokens",
             )
         else:
             best_overall = max(all_summaries, key=lambda x: x["best_recovery"])

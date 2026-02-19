@@ -95,6 +95,70 @@ class AttentionPatchingExperiment(BaseExperiment):
 
         return summary, results
 
+    def patch_single_token(
+        self, token_idx: int, X_clean: np.ndarray, X_corrupt: np.ndarray
+    ) -> Tuple[Dict, List[Dict]]:
+        """Patch a single token across all layers."""
+        print(f"\nPatching token {token_idx}...")
+
+        results = sweep_layers(
+            regressor=self.regressor,
+            X_clean=X_clean,
+            X_corrupt=X_corrupt,
+            corrupt_idx=self.config.corrupt_idx,
+            n_train_samples=self.config.n_train_samples,
+            patch_indices=token_idx,
+            patch_dim=self.config.patch_dim,
+            max_layers=self.config.max_layers,
+        )
+
+        summary = {
+            "token_idx": token_idx,
+            "y_clean": results[0]["y_clean"],
+            "y_corrupt": results[0]["y_corrupt"],
+            "restorations": [r["restoration"] for r in results],
+            "recovery_ratios": [r["recovery_ratio"] for r in results],
+            "layer_indices": [r["layer_idx"] for r in results],
+            "best_recovery": max([abs(r["recovery_ratio"]) for r in results]),
+            "best_layer": max(results, key=lambda x: abs(x["recovery_ratio"]))[
+                "layer_idx"
+            ],
+        }
+
+        return summary, results
+
+    def patch_multiple_tokens(
+        self, token_indices: List[int], X_clean: np.ndarray, X_corrupt: np.ndarray
+    ) -> Tuple[Dict, List[Dict]]:
+        """Patch multiple tokens at once."""
+        print(f"\nPatching tokens {token_indices}...")
+
+        results = sweep_layers(
+            regressor=self.regressor,
+            X_clean=X_clean,
+            X_corrupt=X_corrupt,
+            corrupt_idx=self.config.corrupt_idx,
+            n_train_samples=self.config.n_train_samples,
+            patch_indices=token_indices,
+            patch_dim=self.config.patch_dim,
+            max_layers=self.config.max_layers,
+        )
+
+        summary = {
+            "token_indices": token_indices,
+            "y_clean": results[0]["y_clean"],
+            "y_corrupt": results[0]["y_corrupt"],
+            "restorations": [r["restoration"] for r in results],
+            "recovery_ratios": [r["recovery_ratio"] for r in results],
+            "layer_indices": [r["layer_idx"] for r in results],
+            "best_recovery": max([abs(r["recovery_ratio"]) for r in results]),
+            "best_layer": max(results, key=lambda x: abs(x["recovery_ratio"]))[
+                "layer_idx"
+            ],
+        }
+
+        return summary, results
+
     def patch_full_layer(
         self, X_clean: np.ndarray, X_corrupt: np.ndarray
     ) -> Tuple[Dict, List[Dict]]:
@@ -148,6 +212,28 @@ class AttentionPatchingExperiment(BaseExperiment):
 
         # Create and save plot
         self._plot_single_head(summary, head_idx)
+
+    def save_token_results(
+        self, token_idx: int, summary: Dict, raw_results: List[Dict], script_path: str
+    ):
+        """Save results for a single token."""
+        subdir = f"token_{token_idx}"
+
+        # Save summary JSON
+        self.save_results(summary, subdir, "summary", script_path)
+
+        # Save tensors separately
+        tensors = {
+            "y_clean": summary["y_clean"],
+            "y_corrupt": summary["y_corrupt"],
+            "restorations": torch.tensor(summary["restorations"]),
+            "recovery_ratios": torch.tensor(summary["recovery_ratios"]),
+            "layer_indices": torch.tensor(summary["layer_indices"]),
+        }
+        self.save_tensors(tensors, "tensors", f"token_{token_idx}")
+
+        # Create and save plot
+        self._plot_single_token(summary, token_idx)
 
     def save_full_layer_results(
         self, summary: Dict, raw_results: List[Dict], script_path: str
@@ -267,6 +353,56 @@ class AttentionPatchingExperiment(BaseExperiment):
 
         save_path = (
             self.output_dir / f"head_{head_idx}_restoration_{self.timestamp}.png"
+        )
+        plt.savefig(save_path, dpi=150, bbox_inches="tight")
+        plt.close()
+        self.created_images.append(save_path)
+        print(f"  Saved plot: {save_path}")
+
+    def _plot_single_token(self, summary: Dict, token_idx: int):
+        """Create restoration plot for a single token."""
+        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
+
+        layer_indices = summary["layer_indices"]
+        restorations = summary["restorations"]
+        recovery_ratios = summary["recovery_ratios"]
+        y_clean = summary["y_clean"]
+        y_corrupt = summary["y_corrupt"]
+
+        ax1.plot(layer_indices, restorations, "o-", linewidth=2, markersize=8)
+        ax1.axhline(
+            y=y_clean - y_corrupt,
+            color="r",
+            linestyle="--",
+            label=f"Target ({y_clean - y_corrupt:.4f})",
+        )
+        ax1.axhline(y=0, color="k", linestyle="-", alpha=0.3)
+        ax1.set_xlabel("Layer Index")
+        ax1.set_ylabel("Restoration")
+        ax1.set_title(f"Token {token_idx}: Restoration by Layer")
+        ax1.legend()
+        ax1.grid(True, alpha=0.3)
+
+        ax2.plot(
+            layer_indices,
+            [r * 100 for r in recovery_ratios],
+            "o-",
+            linewidth=2,
+            markersize=8,
+            color="green",
+        )
+        ax2.axhline(y=100, color="r", linestyle="--", label="Full Recovery")
+        ax2.axhline(y=0, color="k", linestyle="-", alpha=0.3)
+        ax2.set_xlabel("Layer Index")
+        ax2.set_ylabel("Recovery %")
+        ax2.set_title(f"Token {token_idx}: Recovery Ratio")
+        ax2.legend()
+        ax2.grid(True, alpha=0.3)
+
+        plt.tight_layout()
+
+        save_path = (
+            self.output_dir / f"token_{token_idx}_restoration_{self.timestamp}.png"
         )
         plt.savefig(save_path, dpi=150, bbox_inches="tight")
         plt.close()

@@ -1,6 +1,6 @@
 {
   "dataset_type": "multiplication",
-  "heads": [0, 1, 2, 3],
+  "tokens": [0, 1, 2],
   "corrupt_idx": 1,
   "noise_std": 1.0,
   "seed": 42,
@@ -8,5 +8,5 @@
   "test_size": 0.8,
   "output_dir": "results/",
   "device": null,
-  "patch_dim": 2
+  "patch_dim": 1
 }

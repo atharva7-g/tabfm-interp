@@ -1,5 +1,3 @@
-"""Interactive configuration manager for patching experiments."""
-
 import json
 from pathlib import Path
 from datetime import datetime
@@ -9,20 +7,25 @@ from typing import Dict, Any, Optional
 DEFAULT_CONFIG = {
     "dataset_type": "multiplication",
     "heads": [0, 1, 2, 3],
+    "tokens": [0, 1, 2],
+    "layers": None,
     "corrupt_idx": 1,
     "noise_std": 1.0,
     "seed": 42,
     "n_samples": 1000,
     "test_size": 0.5,
-    "output_dir": "src/experiments/hooks/results",
+    "output_dir": "src/ablation/results",
     "device": None,
-    "patch_dim": 2,
+    "ablate_dim": 2,
+    "ablation_type": "zero",
 }
+
 
 PARAM_DESCRIPTIONS = {
     "dataset_type": "Dataset type (multiplication, quadratic)",
-    "heads": "Attention heads to patch (list: 0-3)",
-    "tokens": "Tokens to patch (list: 0 to num_tokens-1)",
+    "heads": "Attention heads to ablate (list: 0-3)",
+    "tokens": "Tokens to ablate (list: 0 to num_tokens-1)",
+    "layers": "Layers to ablate (list or null for all)",
     "corrupt_idx": "Feature to corrupt (0=a, 1=b, 2=c)",
     "noise_std": "Noise standard deviation",
     "seed": "Random seed",
@@ -30,12 +33,12 @@ PARAM_DESCRIPTIONS = {
     "test_size": "Test split (0-1)",
     "output_dir": "Output directory",
     "device": "Device (cuda/cpu/auto)",
-    "patch_dim": "Patch dimension: 1=tokens, 2=heads, null=full layer",
+    "ablate_dim": "Ablation dimension: 1=tokens, 2=heads, 3=layers, null=all",
+    "ablation_type": "Ablation type: zero (set to zeros), mean (replace with mean)",
 }
 
 
 def print_menu(config: Dict[str, Any]) -> None:
-    """Print the parameter selection menu."""
     print("\n" + "=" * 60)
     print("CONFIGURATION MENU")
     print("=" * 60)
@@ -50,7 +53,6 @@ def print_menu(config: Dict[str, Any]) -> None:
 
 
 def parse_input_value(key: str, user_input: str) -> Any:
-    """Parse user input into the appropriate type."""
     user_input = user_input.strip()
 
     if key == "heads":
@@ -60,6 +62,14 @@ def parse_input_value(key: str, user_input: str) -> Any:
             return [int(x.strip()) for x in user_input.split()]
 
     elif key == "tokens":
+        if "," in user_input:
+            return [int(x.strip()) for x in user_input.split(",")]
+        else:
+            return [int(x.strip()) for x in user_input.split()]
+
+    elif key == "layers":
+        if user_input.lower() in ["null", "none", "", "all"]:
+            return None
         if "," in user_input:
             return [int(x.strip()) for x in user_input.split(",")]
         else:
@@ -76,17 +86,19 @@ def parse_input_value(key: str, user_input: str) -> Any:
             return None
         return user_input.lower()
 
-    elif key == "patch_dim":
+    elif key == "ablate_dim":
         if user_input.lower() in ["null", "none", ""]:
             return None
         return int(user_input)
+
+    elif key == "ablation_type":
+        return user_input.lower()
 
     else:
         return user_input
 
 
 def validate_value(key: str, value: Any) -> tuple[bool, str]:
-    """Validate a configuration value."""
     if key == "dataset_type":
         if value not in ["multiplication", "quadratic"]:
             return False, "must be 'multiplication' or 'quadratic'"
@@ -107,6 +119,13 @@ def validate_value(key: str, value: Any) -> tuple[bool, str]:
         if not all(isinstance(t, int) and t >= 0 for t in value):
             return False, "must be non-negative integers"
 
+    elif key == "layers":
+        if value is not None:
+            if not isinstance(value, list) or len(value) == 0:
+                return False, "must be non-empty list or null"
+            if not all(isinstance(layer, int) and layer >= 0 for layer in value):
+                return False, "must be non-negative integers"
+
     elif key == "noise_std":
         if value < 0:
             return False, "must be >= 0"
@@ -123,15 +142,18 @@ def validate_value(key: str, value: Any) -> tuple[bool, str]:
         if value is not None and value not in ["cuda", "cpu"]:
             return False, "must be 'cuda', 'cpu', or 'auto'"
 
-    elif key == "patch_dim":
-        if value is not None and value not in [1, 2]:
-            return False, "must be 1 (tokens), 2 (heads), or null (full layer)"
+    elif key == "ablate_dim":
+        if value is not None and value not in [1, 2, 3]:
+            return False, "must be 1 (tokens), 2 (heads), 3 (layers), or null (all)"
+
+    elif key == "ablation_type":
+        if value not in ["zero", "mean"]:
+            return False, "must be 'zero' or 'mean'"
 
     return True, ""
 
 
 def get_parameter_value(key: str, current_value: Any) -> Any:
-    """Ask user for a new parameter value."""
     desc = PARAM_DESCRIPTIONS[key]
     print(f"\n{desc}")
     print(f"Current: {current_value}")
@@ -158,9 +180,8 @@ def get_parameter_value(key: str, current_value: Any) -> Any:
 
 
 def interactive_config() -> Optional[Dict[str, Any]]:
-    """Run interactive configuration."""
     print("\n" + "=" * 60)
-    print("Patching Experiment Configuration")
+    print("Ablation Experiment Configuration")
     print("=" * 60)
 
     print("\nUse default configuration?")
@@ -206,15 +227,12 @@ def interactive_config() -> Optional[Dict[str, Any]]:
 
 
 def save_config(config: Dict[str, Any]) -> Path:
-    """Save configuration to JSON file."""
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     corrupt_feature = ["a", "b", "c"][config["corrupt_idx"]]
     heads_str = "-".join(map(str, config["heads"]))
 
-    # Simplified filename (dataset_type is now in the folder path)
     filename = f"config_{corrupt_feature}_{heads_str}_{timestamp}.json"
 
-    # Dataset-specific subdirectory
     save_dir = Path(config["output_dir"]) / config["dataset_type"] / "configs"
     save_dir.mkdir(parents=True, exist_ok=True)
 
@@ -233,7 +251,6 @@ def save_config(config: Dict[str, Any]) -> Path:
 
 
 def load_config(config_path: str) -> Dict[str, Any]:
-    """Load configuration from JSON file."""
     with open(config_path, "r") as f:
         config = json.load(f)
 
