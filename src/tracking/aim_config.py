@@ -235,20 +235,30 @@ class AimExperimentTracker:
 
     def log_summary(
         self,
-        y_clean: float,
-        y_corrupt: float,
-        best_recovery: float,
-        best_layer: int,
+        y_normal: Optional[float] = None,
+        y_ablated: Optional[float] = None,
+        y_clean: Optional[float] = None,
+        y_corrupt: Optional[float] = None,
+        best_effect: Optional[float] = None,
+        best_recovery: Optional[float] = None,
+        best_layer: int = 0,
         **additional_metrics,
     ) -> None:
-        log_summary_metrics(
-            self.run,
-            y_clean,
-            y_corrupt,
-            best_recovery,
-            best_layer,
-            **additional_metrics,
-        )
+        if y_clean is not None and y_corrupt is not None and best_recovery is not None:
+            log_summary_metrics(
+                self.run,
+                y_clean,
+                y_corrupt,
+                best_recovery,
+                best_layer,
+                **additional_metrics,
+            )
+        elif y_normal is not None and y_ablated is not None and best_effect is not None:
+            for key, value in additional_metrics.items():
+                self.run[key] = value
+        else:
+            for key, value in additional_metrics.items():
+                self.run[key] = value
 
     def log_artifacts(
         self,

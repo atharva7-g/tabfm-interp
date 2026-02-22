@@ -15,8 +15,6 @@ from src.ablation.core_ablation import sweep_layers_for_ablation
 
 @dataclass
 class AblationConfig:
-    corrupt_idx: int
-    noise_std: float
     seed: int
     n_train_samples: int
     ablate_dim: int = 2
@@ -25,8 +23,6 @@ class AblationConfig:
 
 
 class AblationExperiment(BaseExperiment):
-    """Experiment class for ablation studies."""
-
     def __init__(
         self,
         regressor: TabPFNRegressor,
