@@ -28,14 +28,19 @@ def inspect_regressor_model(
 
 def create_corrupted_input(
     X_clean: np.ndarray,
-    corrupt_idx: int = 1,
+    corrupt_idx: Union[int, List[int]] = 1,
     noise_std: float = 1.0,
     seed: int = 42,
 ) -> np.ndarray:
     rng = np.random.default_rng(seed)
     X_corrupt = X_clean.copy()
     num_samples = X_clean.shape[0]
-    X_corrupt[:, corrupt_idx] = rng.normal(0.0, noise_std, num_samples)
+    if isinstance(corrupt_idx, int):
+        X_corrupt[:, corrupt_idx] = rng.normal(0.0, noise_std, num_samples)
+    else:
+        X_corrupt[:, corrupt_idx] = rng.normal(
+            0.0, noise_std, (num_samples, len(corrupt_idx))
+        )
     return X_corrupt
 
 

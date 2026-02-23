@@ -208,11 +208,18 @@ def interactive_config() -> Optional[Dict[str, Any]]:
 def save_config(config: Dict[str, Any]) -> Path:
     """Save configuration to JSON file."""
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    corrupt_feature = ["a", "b", "c"][config["corrupt_idx"]]
+    corrupt_idx = config["corrupt_idx"]
+    if isinstance(corrupt_idx, list):
+        corrupt_feature = f"feat_{len(corrupt_idx)}"
+    else:
+        if corrupt_idx < 3:
+            corrupt_feature = ["a", "b", "c"][corrupt_idx]
+        else:
+            corrupt_feature = f"feat_{corrupt_idx}"
     heads_str = "-".join(map(str, config["heads"]))
 
     # Simplified filename (dataset_type is now in the folder path)
-    filename = f"config_{corrupt_feature}_{heads_str}_{timestamp}.json"
+    filename = f"config_{timestamp}.json"
 
     # Dataset-specific subdirectory
     save_dir = Path(config["output_dir"]) / config["dataset_type"] / "configs"

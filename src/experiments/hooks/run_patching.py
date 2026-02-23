@@ -112,9 +112,9 @@ def main():
 
         X_clean = X_test[0:1]
         print(f"Test sample shape: {X_clean.shape}")
-        print(
-            f"Test sample values: a={X_clean[0, 0]:.4f}, b={X_clean[0, 1]:.4f}, c={X_clean[0, 2]:.4f}"
-        )
+        # print(
+        #     f"Test sample values: a={X_clean[0, 0]:.4f}, b={X_clean[0, 1]:.4f}, c={X_clean[0, 2]:.4f}"
+        # )
 
         X_corrupt = create_corrupted_input(
             X_clean,
@@ -122,7 +122,7 @@ def main():
             noise_std=config["noise_std"],
             seed=config["seed"],
         )
-        print(f"Corrupted input: b={X_corrupt[0, config['corrupt_idx']]:.4f} (noise)")
+        # print(f"Corrupted input: b={X_corrupt[0, config['corrupt_idx']]:.4f} (noise)")
 
         print("\nLoading TabPFN model...")
 
