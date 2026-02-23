@@ -3,6 +3,7 @@
 from .synthetic import (
     create_multiplication_dataset,
     create_quadratic_dataset,
+    create_pairwise_dataset,
     create_dataset,
     get_dataset_formula,
     DATASET_REGISTRY,
@@ -12,6 +13,7 @@ from .synthetic import (
 __all__ = [
     "create_multiplication_dataset",
     "create_quadratic_dataset",
+    "create_pairwise_dataset",
     "create_dataset",
     "get_dataset_formula",
     "DATASET_REGISTRY",

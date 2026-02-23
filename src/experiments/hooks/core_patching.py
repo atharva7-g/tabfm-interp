@@ -1,4 +1,4 @@
-from typing import Callable, Dict, List, Optional, Union
+from typing import Callable, Dict, List, Optional, Tuple, Union
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
@@ -192,7 +192,195 @@ def run_single_layer_patching(
     }
 
 
-def plot_restoration_results(
+def create_steer_hook(
+    direction: torch.Tensor,
+    steer_indices: Union[int, List[int]],
+    steer_dim: Optional[int] = None,
+    alpha: float = 1.0,
+) -> Callable:
+    """Create a hook function that adds a direction vector to activations.
+
+    Args:
+        direction: The direction tensor to add (shape matches activation)
+        steer_indices: Which indices (heads/tokens) to steer
+        steer_dim: Dimension to steer (1=tokens, 2=heads, None=full layer)
+        alpha: Scaling factor for the steering direction
+    """
+    if steer_dim is None:
+        print("Steer dimension is None. Steering full layer.")
+
+        def full_layer_steer_hook(module, inputs, output):
+            if isinstance(output, (tuple, list)):
+                output_tensor = output[0]
+            else:
+                output_tensor = output
+            return output_tensor + alpha * direction
+
+        return full_layer_steer_hook
+
+    if isinstance(steer_indices, int):
+        indices_list = [steer_indices]
+    else:
+        indices_list = list(steer_indices)
+
+    dim_size = direction.shape[steer_dim]
+    for idx in indices_list:
+        if idx < 0 or idx >= dim_size:
+            raise ValueError(
+                f"steer_indices must all be in range [0, {dim_size - 1}], got {idx}"
+            )
+
+    def hook(module, inputs, output):
+        if isinstance(output, (tuple, list)):
+            output_tensor = output[0]
+        else:
+            output_tensor = output
+        modified_output = output_tensor.clone()
+
+        if steer_dim == 1:
+            for idx in indices_list:
+                modified_output[:, idx, :, :] += alpha * direction[:, idx, :, :]
+        elif steer_dim == 2:
+            for idx in indices_list:
+                modified_output[:, :, idx, :] += alpha * direction[:, :, idx, :]
+
+        return modified_output
+
+    return hook
+
+
+def run_single_layer_steering(
+    regressor: TabPFNRegressor,
+    X: np.ndarray,
+    layer_idx: int,
+    direction: torch.Tensor,
+    steer_indices: Union[int, List[int]],
+    steer_dim: Optional[int] = 2,
+    alpha: float = 1.0,
+) -> Dict[str, float]:
+    """Run steering on a single layer and return the effect."""
+    model = regressor.model_
+    layer = model.transformer_encoder.layers[layer_idx]
+    attention_module = layer.self_attn_between_features
+
+    steer_hook_fn = create_steer_hook(direction, steer_indices, steer_dim, alpha)
+    steer_handle = attention_module.register_forward_hook(steer_hook_fn)
+
+    with torch.no_grad():
+        y_steered = regressor.predict(X)
+
+    steer_handle.remove()
+
+    with torch.no_grad():
+        y_normal = regressor.predict(X)
+
+    y_steered_val = (
+        float(y_steered[0]) if len(y_steered.shape) > 0 else float(y_steered)
+    )
+    y_normal_val = float(y_normal[0]) if len(y_normal.shape) > 0 else float(y_normal)
+
+    steering_effect = y_steered_val - y_normal_val
+
+    return {
+        "y_normal": y_normal_val,
+        "y_steered": y_steered_val,
+        "steering_effect": steering_effect,
+        "alpha": alpha,
+        "layer_idx": layer_idx,
+    }
+
+
+def sweep_steering_layers(
+    regressor: TabPFNRegressor,
+    X: np.ndarray,
+    direction: torch.Tensor,
+    steer_indices: Union[int, List[int]],
+    steer_dim: Optional[int] = 2,
+    alpha: float = 1.0,
+    max_layers: Optional[int] = None,
+) -> List[Dict[str, float]]:
+    """Sweep through layers, applying steering at each."""
+    model = regressor.model_
+    total_layers = len(model.transformer_encoder.layers)
+    num_layers = max_layers if max_layers is not None else total_layers
+    num_layers = min(num_layers, total_layers)
+    results = []
+
+    for layer_idx in range(num_layers):
+        print(f"Processing layer {layer_idx}/{num_layers - 1}...")
+        result = run_single_layer_steering(
+            regressor,
+            X,
+            layer_idx,
+            direction,
+            steer_indices,
+            steer_dim,
+            alpha,
+        )
+        results.append(result)
+
+    return results
+
+
+def create_direction_from_difference(
+    activation_high: torch.Tensor,
+    activation_low: torch.Tensor,
+    normalize: bool = True,
+    device: Optional[torch.device] = None,
+) -> torch.Tensor:
+    """Create a direction vector from the difference between two activation states.
+
+    Args:
+        activation_high: Activation from "high" state (e.g., large input values)
+        activation_low: Activation from "low" state (e.g., small input values)
+        normalize: Whether to normalize the direction tensor
+        device: Device to place the direction tensor on
+
+    Returns:
+        Direction tensor (difference or normalized difference)
+    """
+    direction = activation_high - activation_low
+
+    if normalize:
+        direction = direction / (direction.norm() + 1e-8)
+
+    if device is not None:
+        direction = direction.to(device)
+
+    return direction
+
+
+def create_random_direction(
+    shape: Tuple[int, ...],
+    seed: int = 42,
+    normalize: bool = True,
+    device: Optional[torch.device] = None,
+) -> torch.Tensor:
+    """Create a random direction vector.
+
+    Args:
+        shape: Shape of the direction tensor
+        seed: Random seed
+        normalize: Whether to normalize the direction tensor
+        device: Device to place the direction tensor on
+
+    Returns:
+        Random direction tensor
+    """
+    rng = torch.Generator()
+    rng.manual_seed(seed)
+    direction = torch.randn(shape, generator=rng)
+
+    if normalize:
+        direction = direction / (direction.norm() + 1e-8)
+
+    if device is not None:
+        direction = direction.to(device)
+
+    return direction
+
+
+def plot_steering_results(
     results: List[Dict[str, float]],
     save_path: Optional[str] = None,
 ) -> None:
@@ -225,6 +413,50 @@ def plot_restoration_results(
     ax2.set_title("Activation Patching: Recovery Ratio by Layer")
     ax2.legend()
     ax2.grid(True, alpha=0.3)
+    plt.tight_layout()
+    if save_path:
+        plt.savefig(save_path, dpi=150, bbox_inches="tight")
+        print(f"Plot saved to {save_path}")
+    plt.show()
+
+
+def plot_restoration_results(
+    results: List[Dict[str, float]],
+    save_path: Optional[str] = None,
+) -> None:
+    layer_indices = [r["layer_idx"] for r in results]
+    restorations = [r["restoration"] for r in results]
+    recovery_ratios = [r["recovery_ratio"] for r in results]
+    y_clean = results[0]["y_clean"]
+    y_corrupt = results[0]["y_corrupt"]
+
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
+
+    ax1.plot(layer_indices, restorations, "o-", linewidth=2, markersize=8)
+    ax1.axhline(
+        y=y_clean - y_corrupt,
+        color="r",
+        linestyle="--",
+        label=f"Target (y_clean - y_corrupt = {y_clean - y_corrupt:.4f})",
+    )
+    ax1.axhline(y=0, color="k", linestyle="-", alpha=0.3)
+    ax1.set_xlabel("Layer Index")
+    ax1.set_ylabel("Restoration (y_patched - y_corrupt)")
+    ax1.set_title("Activation Patching: Restoration by Layer")
+    ax1.legend()
+    ax1.grid(True, alpha=0.3)
+
+    ax2.plot(
+        layer_indices, recovery_ratios, "o-", linewidth=2, markersize=8, color="green"
+    )
+    ax2.axhline(y=1.0, color="r", linestyle="--", label="Full Recovery (100%)")
+    ax2.axhline(y=0, color="k", linestyle="-", alpha=0.3)
+    ax2.set_xlabel("Layer Index")
+    ax2.set_ylabel("Recovery Ratio")
+    ax2.set_title("Activation Patching: Recovery Ratio by Layer")
+    ax2.legend()
+    ax2.grid(True, alpha=0.3)
+
     plt.tight_layout()
     if save_path:
         plt.savefig(save_path, dpi=150, bbox_inches="tight")

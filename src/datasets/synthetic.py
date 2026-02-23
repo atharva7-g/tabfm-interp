@@ -44,6 +44,17 @@ def create_quadratic_dataset(
     return X, y.astype(np.float32)
 
 
+@register_dataset("pairwise_50")
+def create_pairwise_dataset(
+    num_samples: int = 1000, seed: int = 42
+) -> Tuple[np.ndarray, np.ndarray]:
+    """y = sum of all pairwise products (=2500)"""
+    rng = np.random.default_rng(seed)
+    X = rng.standard_normal((num_samples, 50)).astype(np.float32)
+    y = np.sum(X @ X.T, axis=1).astype(np.float32)
+    return X, y
+
+
 def create_dataset(dataset_type: str, **kwargs) -> Tuple[np.ndarray, np.ndarray]:
     """Factory to create dataset by type."""
     if dataset_type not in DATASET_REGISTRY:
@@ -63,5 +74,6 @@ def get_dataset_formula(dataset_type: str) -> str:
     formulas = {
         "multiplication": "y = a × b + c",
         "quadratic": "y = a² + b² + c",
+        "pairwise_50": "y = Σ(x[i] × x[j]) for all i and j",
     }
     return formulas.get(dataset_type, "Unknown")
