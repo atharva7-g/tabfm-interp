@@ -44,8 +44,14 @@ class AttentionPatchingExperiment(BaseExperiment):
             n_train_samples=self.config.n_train_samples,
             patch_indices=head_idx,
             patch_dim=self.config.patch_dim,
+            ratio_epsilon=self.config.ratio_epsilon,
             max_layers=self.config.max_layers,
         )
+
+        raw_recovery_ratios = [r["recovery_ratio"] for r in results]
+        stable_recovery_ratios = [r["recovery_ratio_stable"] for r in results]
+        recovery_scores = [r["recovery_score"] for r in results]
+        best_by_score = max(results, key=lambda x: x["recovery_score"])
 
         # Extract key metrics
         summary = {
@@ -53,12 +59,14 @@ class AttentionPatchingExperiment(BaseExperiment):
             "y_clean": results[0]["y_clean"],
             "y_corrupt": results[0]["y_corrupt"],
             "restorations": [r["restoration"] for r in results],
-            "recovery_ratios": [r["recovery_ratio"] for r in results],
+            "recovery_ratios": raw_recovery_ratios,
+            "recovery_ratios_stable": stable_recovery_ratios,
+            "recovery_scores": recovery_scores,
             "layer_indices": [r["layer_idx"] for r in results],
-            "best_recovery": max([abs(r["recovery_ratio"]) for r in results]),
-            "best_layer": max(results, key=lambda x: abs(x["recovery_ratio"]))[
-                "layer_idx"
-            ],
+            "best_recovery": best_by_score["recovery_score"],
+            "best_recovery_raw_abs": max([abs(x) for x in raw_recovery_ratios]),
+            "best_recovery_stable_abs": max([abs(x) for x in stable_recovery_ratios]),
+            "best_layer": best_by_score["layer_idx"],
         }
 
         return summary, results
@@ -77,20 +85,28 @@ class AttentionPatchingExperiment(BaseExperiment):
             n_train_samples=self.config.n_train_samples,
             patch_indices=head_indices,
             patch_dim=self.config.patch_dim,
+            ratio_epsilon=self.config.ratio_epsilon,
             max_layers=self.config.max_layers,
         )
+
+        raw_recovery_ratios = [r["recovery_ratio"] for r in results]
+        stable_recovery_ratios = [r["recovery_ratio_stable"] for r in results]
+        recovery_scores = [r["recovery_score"] for r in results]
+        best_by_score = max(results, key=lambda x: x["recovery_score"])
 
         summary = {
             "head_indices": head_indices,
             "y_clean": results[0]["y_clean"],
             "y_corrupt": results[0]["y_corrupt"],
             "restorations": [r["restoration"] for r in results],
-            "recovery_ratios": [r["recovery_ratio"] for r in results],
+            "recovery_ratios": raw_recovery_ratios,
+            "recovery_ratios_stable": stable_recovery_ratios,
+            "recovery_scores": recovery_scores,
             "layer_indices": [r["layer_idx"] for r in results],
-            "best_recovery": max([abs(r["recovery_ratio"]) for r in results]),
-            "best_layer": max(results, key=lambda x: abs(x["recovery_ratio"]))[
-                "layer_idx"
-            ],
+            "best_recovery": best_by_score["recovery_score"],
+            "best_recovery_raw_abs": max([abs(x) for x in raw_recovery_ratios]),
+            "best_recovery_stable_abs": max([abs(x) for x in stable_recovery_ratios]),
+            "best_layer": best_by_score["layer_idx"],
         }
 
         return summary, results
@@ -109,20 +125,28 @@ class AttentionPatchingExperiment(BaseExperiment):
             n_train_samples=self.config.n_train_samples,
             patch_indices=token_idx,
             patch_dim=self.config.patch_dim,
+            ratio_epsilon=self.config.ratio_epsilon,
             max_layers=self.config.max_layers,
         )
+
+        raw_recovery_ratios = [r["recovery_ratio"] for r in results]
+        stable_recovery_ratios = [r["recovery_ratio_stable"] for r in results]
+        recovery_scores = [r["recovery_score"] for r in results]
+        best_by_score = max(results, key=lambda x: x["recovery_score"])
 
         summary = {
             "token_idx": token_idx,
             "y_clean": results[0]["y_clean"],
             "y_corrupt": results[0]["y_corrupt"],
             "restorations": [r["restoration"] for r in results],
-            "recovery_ratios": [r["recovery_ratio"] for r in results],
+            "recovery_ratios": raw_recovery_ratios,
+            "recovery_ratios_stable": stable_recovery_ratios,
+            "recovery_scores": recovery_scores,
             "layer_indices": [r["layer_idx"] for r in results],
-            "best_recovery": max([abs(r["recovery_ratio"]) for r in results]),
-            "best_layer": max(results, key=lambda x: abs(x["recovery_ratio"]))[
-                "layer_idx"
-            ],
+            "best_recovery": best_by_score["recovery_score"],
+            "best_recovery_raw_abs": max([abs(x) for x in raw_recovery_ratios]),
+            "best_recovery_stable_abs": max([abs(x) for x in stable_recovery_ratios]),
+            "best_layer": best_by_score["layer_idx"],
         }
 
         return summary, results
@@ -141,20 +165,28 @@ class AttentionPatchingExperiment(BaseExperiment):
             n_train_samples=self.config.n_train_samples,
             patch_indices=token_indices,
             patch_dim=self.config.patch_dim,
+            ratio_epsilon=self.config.ratio_epsilon,
             max_layers=self.config.max_layers,
         )
+
+        raw_recovery_ratios = [r["recovery_ratio"] for r in results]
+        stable_recovery_ratios = [r["recovery_ratio_stable"] for r in results]
+        recovery_scores = [r["recovery_score"] for r in results]
+        best_by_score = max(results, key=lambda x: x["recovery_score"])
 
         summary = {
             "token_indices": token_indices,
             "y_clean": results[0]["y_clean"],
             "y_corrupt": results[0]["y_corrupt"],
             "restorations": [r["restoration"] for r in results],
-            "recovery_ratios": [r["recovery_ratio"] for r in results],
+            "recovery_ratios": raw_recovery_ratios,
+            "recovery_ratios_stable": stable_recovery_ratios,
+            "recovery_scores": recovery_scores,
             "layer_indices": [r["layer_idx"] for r in results],
-            "best_recovery": max([abs(r["recovery_ratio"]) for r in results]),
-            "best_layer": max(results, key=lambda x: abs(x["recovery_ratio"]))[
-                "layer_idx"
-            ],
+            "best_recovery": best_by_score["recovery_score"],
+            "best_recovery_raw_abs": max([abs(x) for x in raw_recovery_ratios]),
+            "best_recovery_stable_abs": max([abs(x) for x in stable_recovery_ratios]),
+            "best_layer": best_by_score["layer_idx"],
         }
 
         return summary, results
@@ -173,20 +205,28 @@ class AttentionPatchingExperiment(BaseExperiment):
             n_train_samples=self.config.n_train_samples,
             patch_indices=0,
             patch_dim=None,
+            ratio_epsilon=self.config.ratio_epsilon,
             max_layers=self.config.max_layers,
         )
+
+        raw_recovery_ratios = [r["recovery_ratio"] for r in results]
+        stable_recovery_ratios = [r["recovery_ratio_stable"] for r in results]
+        recovery_scores = [r["recovery_score"] for r in results]
+        best_by_score = max(results, key=lambda x: x["recovery_score"])
 
         summary = {
             "patch_dim": None,
             "y_clean": results[0]["y_clean"],
             "y_corrupt": results[0]["y_corrupt"],
             "restorations": [r["restoration"] for r in results],
-            "recovery_ratios": [r["recovery_ratio"] for r in results],
+            "recovery_ratios": raw_recovery_ratios,
+            "recovery_ratios_stable": stable_recovery_ratios,
+            "recovery_scores": recovery_scores,
             "layer_indices": [r["layer_idx"] for r in results],
-            "best_recovery": max([abs(r["recovery_ratio"]) for r in results]),
-            "best_layer": max(results, key=lambda x: abs(x["recovery_ratio"]))[
-                "layer_idx"
-            ],
+            "best_recovery": best_by_score["recovery_score"],
+            "best_recovery_raw_abs": max([abs(x) for x in raw_recovery_ratios]),
+            "best_recovery_stable_abs": max([abs(x) for x in stable_recovery_ratios]),
+            "best_layer": best_by_score["layer_idx"],
         }
 
         return summary, results
@@ -206,6 +246,8 @@ class AttentionPatchingExperiment(BaseExperiment):
             "y_corrupt": summary["y_corrupt"],
             "restorations": torch.tensor(summary["restorations"]),
             "recovery_ratios": torch.tensor(summary["recovery_ratios"]),
+            "recovery_ratios_stable": torch.tensor(summary["recovery_ratios_stable"]),
+            "recovery_scores": torch.tensor(summary["recovery_scores"]),
             "layer_indices": torch.tensor(summary["layer_indices"]),
         }
         self.save_tensors(tensors, "tensors", f"head_{head_idx}")
@@ -228,6 +270,8 @@ class AttentionPatchingExperiment(BaseExperiment):
             "y_corrupt": summary["y_corrupt"],
             "restorations": torch.tensor(summary["restorations"]),
             "recovery_ratios": torch.tensor(summary["recovery_ratios"]),
+            "recovery_ratios_stable": torch.tensor(summary["recovery_ratios_stable"]),
+            "recovery_scores": torch.tensor(summary["recovery_scores"]),
             "layer_indices": torch.tensor(summary["layer_indices"]),
         }
         self.save_tensors(tensors, "tensors", f"token_{token_idx}")
@@ -250,6 +294,8 @@ class AttentionPatchingExperiment(BaseExperiment):
             "y_corrupt": summary["y_corrupt"],
             "restorations": torch.tensor(summary["restorations"]),
             "recovery_ratios": torch.tensor(summary["recovery_ratios"]),
+            "recovery_ratios_stable": torch.tensor(summary["recovery_ratios_stable"]),
+            "recovery_scores": torch.tensor(summary["recovery_scores"]),
             "layer_indices": torch.tensor(summary["layer_indices"]),
         }
         self.save_tensors(tensors, "tensors", "full_layer")
@@ -263,7 +309,9 @@ class AttentionPatchingExperiment(BaseExperiment):
 
         layer_indices = summary["layer_indices"]
         restorations = summary["restorations"]
-        recovery_ratios = summary["recovery_ratios"]
+        recovery_ratios = summary.get(
+            "recovery_ratios_stable", summary["recovery_ratios"]
+        )
         y_clean = summary["y_clean"]
         y_corrupt = summary["y_corrupt"]
 
@@ -295,7 +343,7 @@ class AttentionPatchingExperiment(BaseExperiment):
         ax2.axhline(y=0, color="k", linestyle="-", alpha=0.3)
         ax2.set_xlabel("Layer Index")
         ax2.set_ylabel("Recovery %")
-        ax2.set_title("Full Layer Patching: Recovery Ratio")
+        ax2.set_title("Full Layer Patching: Stable Recovery Ratio")
         ax2.legend()
         ax2.grid(True, alpha=0.3)
 
@@ -313,7 +361,9 @@ class AttentionPatchingExperiment(BaseExperiment):
 
         layer_indices = summary["layer_indices"]
         restorations = summary["restorations"]
-        recovery_ratios = summary["recovery_ratios"]
+        recovery_ratios = summary.get(
+            "recovery_ratios_stable", summary["recovery_ratios"]
+        )
         y_clean = summary["y_clean"]
         y_corrupt = summary["y_corrupt"]
 
@@ -345,7 +395,7 @@ class AttentionPatchingExperiment(BaseExperiment):
         ax2.axhline(y=0, color="k", linestyle="-", alpha=0.3)
         ax2.set_xlabel("Layer Index")
         ax2.set_ylabel("Recovery %")
-        ax2.set_title(f"Head {head_idx}: Recovery Ratio")
+        ax2.set_title(f"Head {head_idx}: Stable Recovery Ratio")
         ax2.legend()
         ax2.grid(True, alpha=0.3)
 
@@ -365,7 +415,9 @@ class AttentionPatchingExperiment(BaseExperiment):
 
         layer_indices = summary["layer_indices"]
         restorations = summary["restorations"]
-        recovery_ratios = summary["recovery_ratios"]
+        recovery_ratios = summary.get(
+            "recovery_ratios_stable", summary["recovery_ratios"]
+        )
         y_clean = summary["y_clean"]
         y_corrupt = summary["y_corrupt"]
 
@@ -395,7 +447,7 @@ class AttentionPatchingExperiment(BaseExperiment):
         ax2.axhline(y=0, color="k", linestyle="-", alpha=0.3)
         ax2.set_xlabel("Layer Index")
         ax2.set_ylabel("Recovery %")
-        ax2.set_title(f"Token {token_idx}: Recovery Ratio")
+        ax2.set_title(f"Token {token_idx}: Stable Recovery Ratio")
         ax2.legend()
         ax2.grid(True, alpha=0.3)
 
@@ -421,7 +473,9 @@ class AttentionPatchingExperiment(BaseExperiment):
             head_idx = summary["head_idx"]
             layer_indices = summary["layer_indices"]
             restorations = summary["restorations"]
-            recovery_ratios = summary["recovery_ratios"]
+            recovery_ratios = summary.get(
+                "recovery_ratios_stable", summary["recovery_ratios"]
+            )
 
             ax1.plot(
                 layer_indices,
@@ -494,7 +548,8 @@ class AttentionPatchingExperiment(BaseExperiment):
         for i, summary in enumerate(all_summaries):
             head_idx = summary["head_idx"]
             for layer_idx, recovery in zip(
-                summary["layer_indices"], summary["recovery_ratios"]
+                summary["layer_indices"],
+                summary.get("recovery_ratios_stable", summary["recovery_ratios"]),
             ):
                 heatmap_data[layer_idx, i] = (
                     recovery * 100

@@ -5,7 +5,7 @@ import argparse
 from pathlib import Path
 import torch
 
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 from src.utils.utils import set_seed, get_project_root
 from src.datasets import create_dataset, get_dataset_formula
@@ -46,7 +46,52 @@ def parse_args():
         action="store_true",
         help="Use interactive configuration mode instead of config file",
     )
+    parser.add_argument(
+        "--eval-samples",
+        type=int,
+        default=64,
+        help="Number of test samples to evaluate (default: 64)",
+    )
+    parser.add_argument(
+        "--ratio-epsilon",
+        type=float,
+        default=0.05,
+        help="Minimum denominator for stable recovery metrics (default: 0.05)",
+    )
+    parser.add_argument(
+        "--corrupt-idx",
+        type=str,
+        default=None,
+        help="Override corrupt_idx from config; accepts int or comma-separated ints",
+    )
     return parser.parse_args()
+
+
+def parse_corrupt_idx(value: str):
+    value = value.strip()
+    if "," in value:
+        return [int(v.strip()) for v in value.split(",") if v.strip() != ""]
+    return int(value)
+
+
+def format_corrupt_tag(corrupt_idx):
+    if isinstance(corrupt_idx, list):
+        if not corrupt_idx:
+            return "none"
+        if len(corrupt_idx) <= 4:
+            return "-".join(map(str, corrupt_idx))
+        return f"multi{len(corrupt_idx)}"
+    return str(corrupt_idx)
+
+
+def recommend_corrupt_idx(dataset_type: str, current_corrupt_idx):
+    if current_corrupt_idx is not None:
+        return current_corrupt_idx
+    if dataset_type == "multiplication":
+        return 2
+    if dataset_type == "quadratic":
+        return 2
+    return 0
 
 
 def get_config(args):
@@ -82,9 +127,22 @@ def main():
     if config is None:
         return
 
+    if args.corrupt_idx is not None:
+        config["corrupt_idx"] = parse_corrupt_idx(args.corrupt_idx)
+
+    config["eval_samples"] = args.eval_samples
+    config["ratio_epsilon"] = args.ratio_epsilon
+    config["corrupt_idx"] = recommend_corrupt_idx(
+        config.get("dataset_type", "multiplication"),
+        config.get("corrupt_idx"),
+    )
+
     with AimExperimentTracker(
         experiment_name="attention-patching",
-        tags=[config["dataset_type"], f"corrupt_{config['corrupt_idx']}"],
+        tags=[
+            config["dataset_type"],
+            f"corrupt_{format_corrupt_tag(config['corrupt_idx'])}",
+        ],
     ) as tracker:
         save_config(config)
         tracker.log_params(config)
@@ -110,7 +168,8 @@ def main():
             X, y, test_size=config["test_size"], random_state=config["seed"]
         )
 
-        X_clean = X_test[0:1]
+        n_eval = max(1, min(args.eval_samples, len(X_test)))
+        X_clean = X_test[:n_eval]
         print(f"Test sample shape: {X_clean.shape}")
         # print(
         #     f"Test sample values: a={X_clean[0, 0]:.4f}, b={X_clean[0, 1]:.4f}, c={X_clean[0, 2]:.4f}"
@@ -137,6 +196,7 @@ def main():
             seed=config["seed"],
             n_train_samples=len(X_train),
             patch_dim=patch_dim,
+            ratio_epsilon=args.ratio_epsilon,
         )
 
         script_path = str(Path(__file__).relative_to(Path.cwd()))
@@ -166,11 +226,11 @@ def main():
             tracker.log_patching_layer(
                 layer_idx=summary["best_layer"],
                 restoration=summary["restorations"][best_idx],
-                recovery_ratio=summary["best_recovery"],
+                recovery_ratio=summary["recovery_ratios_stable"][best_idx],
             )
 
             print(
-                f"  Best recovery: {summary['best_recovery'] * 100:.2f}% at layer {summary['best_layer']}"
+                f"  Best score: {summary['best_recovery'] * 100:.2f}% at layer {summary['best_layer']}"
             )
         elif patch_dim == 1:
             for token_idx in config["tokens"]:
@@ -189,12 +249,12 @@ def main():
                 tracker.log_patching_layer(
                     layer_idx=summary["best_layer"],
                     restoration=summary["restorations"][best_idx],
-                    recovery_ratio=summary["best_recovery"],
+                    recovery_ratio=summary["recovery_ratios_stable"][best_idx],
                     token_idx=token_idx,
                 )
 
                 print(
-                    f"  Best recovery: {summary['best_recovery'] * 100:.2f}% at layer {summary['best_layer']}"
+                    f"  Best score: {summary['best_recovery'] * 100:.2f}% at layer {summary['best_layer']}"
                 )
         else:
             for head_idx in config["heads"]:
@@ -213,12 +273,12 @@ def main():
                 tracker.log_patching_layer(
                     layer_idx=summary["best_layer"],
                     restoration=summary["restorations"][best_idx],
-                    recovery_ratio=summary["best_recovery"],
+                    recovery_ratio=summary["recovery_ratios_stable"][best_idx],
                     head_idx=head_idx,
                 )
 
                 print(
-                    f"  Best recovery: {summary['best_recovery'] * 100:.2f}% at layer {summary['best_layer']}"
+                    f"  Best score: {summary['best_recovery'] * 100:.2f}% at layer {summary['best_layer']}"
                 )
 
         if len(all_summaries) > 1:
@@ -229,44 +289,66 @@ def main():
         print("\n" + "=" * 60)
         print("EXPERIMENT SUMMARY")
         print("=" * 60)
+        print(f"\nEvaluated samples: {n_eval}")
+        print(f"Stable ratio epsilon: {args.ratio_epsilon}")
         print(f"\nClean output: {all_summaries[0]['y_clean']:.6f}")
         print(f"Corrupted output: {all_summaries[0]['y_corrupt']:.6f}")
+        clean_corrupt_diff = all_summaries[0]["y_clean"] - all_summaries[0]["y_corrupt"]
+        print(f"Clean-corrupt gap: {clean_corrupt_diff:.6f}")
 
         if patch_dim is None:
             print("\nFull layer patching results:")
-            print(f"{'Layer':<8} {'Best Recovery':<15}")
-            print("-" * 25)
             print(
-                f"{all_summaries[0]['best_layer']:<8} {all_summaries[0]['best_recovery'] * 100:<15.2f}%"
+                f"{'Layer':<8} {'Best Score':<12} {'Stable Ratio':<14} {'Raw |Ratio|':<12}"
+            )
+            print("-" * 52)
+            print(
+                f"{all_summaries[0]['best_layer']:<8} "
+                f"{all_summaries[0]['best_recovery'] * 100:<11.2f}% "
+                f"{all_summaries[0]['best_recovery_stable_abs'] * 100:<13.2f}% "
+                f"{all_summaries[0]['best_recovery_raw_abs'] * 100:<11.2f}%"
             )
             print(
-                f"\nBest layer overall: {all_summaries[0]['best_layer']} ({all_summaries[0]['best_recovery'] * 100:.2f}% recovery)"
+                f"\nBest layer overall: {all_summaries[0]['best_layer']} "
+                f"({all_summaries[0]['best_recovery'] * 100:.2f}% score)"
             )
         elif patch_dim == 1:
             print("\nToken-by-token results:")
-            print(f"{'Token':<8} {'Best Recovery':<15} {'Best Layer':<12}")
-            print("-" * 35)
+            print(
+                f"{'Token':<8} {'Best Score':<12} {'Stable Ratio':<14} {'Raw |Ratio|':<12} {'Best Layer':<12}"
+            )
+            print("-" * 72)
             for summary in all_summaries:
                 print(
-                    f"{summary['token_idx']:<8} {summary['best_recovery'] * 100:<15.2f}% {summary['best_layer']:<12}"
+                    f"{summary['token_idx']:<8} "
+                    f"{summary['best_recovery'] * 100:<11.2f}% "
+                    f"{summary['best_recovery_stable_abs'] * 100:<13.2f}% "
+                    f"{summary['best_recovery_raw_abs'] * 100:<11.2f}% "
+                    f"{summary['best_layer']:<12}"
                 )
 
             best_token = max(all_summaries, key=lambda x: x["best_recovery"])
             print(
-                f"\nBest token overall: {best_token['token_idx']} ({best_token['best_recovery'] * 100:.2f}% recovery)"
+                f"\nBest token overall: {best_token['token_idx']} ({best_token['best_recovery'] * 100:.2f}% score)"
             )
         else:
             print("\nHead-by-head results:")
-            print(f"{'Head':<8} {'Best Recovery':<15} {'Best Layer':<12}")
-            print("-" * 35)
+            print(
+                f"{'Head':<8} {'Best Score':<12} {'Stable Ratio':<14} {'Raw |Ratio|':<12} {'Best Layer':<12}"
+            )
+            print("-" * 72)
             for summary in all_summaries:
                 print(
-                    f"{summary['head_idx']:<8} {summary['best_recovery'] * 100:<15.2f}% {summary['best_layer']:<12}"
+                    f"{summary['head_idx']:<8} "
+                    f"{summary['best_recovery'] * 100:<11.2f}% "
+                    f"{summary['best_recovery_stable_abs'] * 100:<13.2f}% "
+                    f"{summary['best_recovery_raw_abs'] * 100:<11.2f}% "
+                    f"{summary['best_layer']:<12}"
                 )
 
             best_head = max(all_summaries, key=lambda x: x["best_recovery"])
             print(
-                f"\nBest head overall: {best_head['head_idx']} ({best_head['best_recovery'] * 100:.2f}% recovery)"
+                f"\nBest head overall: {best_head['head_idx']} ({best_head['best_recovery'] * 100:.2f}% score)"
             )
 
         if experiment.created_images:
@@ -308,6 +390,10 @@ def main():
                 best_recovery=all_summaries[0]["best_recovery"],
                 best_layer=all_summaries[0]["best_layer"],
                 patch_type="full_layer",
+                best_recovery_raw_abs=all_summaries[0]["best_recovery_raw_abs"],
+                best_recovery_stable_abs=all_summaries[0]["best_recovery_stable_abs"],
+                eval_samples=n_eval,
+                ratio_epsilon=args.ratio_epsilon,
             )
         elif patch_dim == 1:
             best_overall = max(all_summaries, key=lambda x: x["best_recovery"])
@@ -319,6 +405,10 @@ def main():
                 best_token=best_overall["token_idx"],
                 tokens_tested=len(config["tokens"]),
                 patch_type="tokens",
+                best_recovery_raw_abs=best_overall["best_recovery_raw_abs"],
+                best_recovery_stable_abs=best_overall["best_recovery_stable_abs"],
+                eval_samples=n_eval,
+                ratio_epsilon=args.ratio_epsilon,
             )
         else:
             best_overall = max(all_summaries, key=lambda x: x["best_recovery"])
@@ -330,6 +420,10 @@ def main():
                 best_head=best_overall["head_idx"],
                 heads_tested=len(config["heads"]),
                 patch_type="attention_heads",
+                best_recovery_raw_abs=best_overall["best_recovery_raw_abs"],
+                best_recovery_stable_abs=best_overall["best_recovery_stable_abs"],
+                eval_samples=n_eval,
+                ratio_epsilon=args.ratio_epsilon,
             )
 
         print(f"\nResults saved to: {dataset_output_dir}/")

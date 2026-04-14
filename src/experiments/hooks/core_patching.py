@@ -119,11 +119,12 @@ def sweep_layers(
     regressor: TabPFNRegressor,
     X_clean: np.ndarray,
     X_corrupt: np.ndarray,
-    corrupt_idx: int,
+    corrupt_idx: Union[int, List[int]],
     n_train_samples: int,
     patch_indices: Union[int, List[int]],
     patch_dim: Optional[int] = 2,
     max_layers: Optional[int] = None,
+    ratio_epsilon: float = 0.05,
 ) -> List[Dict[str, float]]:
     model = regressor.model_
     total_layers = len(model.transformer_encoder.layers)  # type: ignore
@@ -141,6 +142,7 @@ def sweep_layers(
             n_train_samples,
             patch_indices,
             patch_dim,
+            ratio_epsilon,
         )
         results.append(result)
     return results
@@ -150,11 +152,12 @@ def run_single_layer_patching(
     regressor: TabPFNRegressor,
     X_clean: np.ndarray,
     X_corrupt: np.ndarray,
-    corrupt_idx: int,
+    corrupt_idx: Union[int, List[int]],
     layer_idx: int,
     n_train_samples: int,
     patch_indices: Union[int, List[int]],
     patch_dim: Optional[int] = 2,
+    ratio_epsilon: float = 0.05,
 ) -> Dict[str, float]:
     model = regressor.model_
     layer_name = f"layer_{layer_idx}"
@@ -174,25 +177,37 @@ def run_single_layer_patching(
     with torch.no_grad():
         y_patched = regressor.predict(X_corrupt)
     patch_handle.remove()
-    y_clean_val = float(y_clean[0]) if len(y_clean.shape) > 0 else float(y_clean)
-    y_corrupt_val = (
-        float(y_corrupt[0]) if len(y_corrupt.shape) > 0 else float(y_corrupt)
-    )
-    y_patched_val = (
-        float(y_patched[0]) if len(y_patched.shape) > 0 else float(y_patched)
-    )
+    y_clean_arr = np.asarray(y_clean, dtype=np.float64).reshape(-1)
+    y_corrupt_arr = np.asarray(y_corrupt, dtype=np.float64).reshape(-1)
+    y_patched_arr = np.asarray(y_patched, dtype=np.float64).reshape(-1)
+
+    y_clean_val = float(np.mean(y_clean_arr))
+    y_corrupt_val = float(np.mean(y_corrupt_arr))
+    y_patched_val = float(np.mean(y_patched_arr))
+
     restoration = y_patched_val - y_corrupt_val
     clean_corrupt_diff = y_clean_val - y_corrupt_val
     if abs(clean_corrupt_diff) > 1e-10:
         recovery_ratio = restoration / clean_corrupt_diff
     else:
         recovery_ratio = 0.0
+
+    safe_denominator = max(abs(clean_corrupt_diff), ratio_epsilon)
+    recovery_ratio_stable = restoration / safe_denominator
+    recovery_score = 1.0 - (abs(y_patched_val - y_clean_val) / safe_denominator)
+    recovery_score = float(np.clip(recovery_score, -1.0, 1.0))
+
     return {
         "y_clean": y_clean_val,
         "y_corrupt": y_corrupt_val,
         "y_patched": y_patched_val,
         "restoration": restoration,
         "recovery_ratio": recovery_ratio,
+        "recovery_ratio_stable": recovery_ratio_stable,
+        "recovery_score": recovery_score,
+        "clean_corrupt_diff": clean_corrupt_diff,
+        "safe_denominator": safe_denominator,
+        "n_eval_samples": int(y_clean_arr.size),
         "layer_idx": layer_idx,
     }
 
@@ -490,14 +505,14 @@ def run_feature_attention_causal_patching_experiment(
         f"Corrupted input: a={X_corrupt[0, 0]:.4f}, b={X_corrupt[0, 1]:.4f} (noise), c={X_corrupt[0, 2]:.4f}"
     )
     results = sweep_layers(
-        regressor,
-        X_clean,
-        X_corrupt,
-        corrupt_idx,
-        n_train_samples,
-        patch_indices,
-        patch_dim,
-        max_layers,
+        regressor=regressor,
+        X_clean=X_clean,
+        X_corrupt=X_corrupt,
+        corrupt_idx=corrupt_idx,
+        n_train_samples=n_train_samples,
+        patch_indices=patch_indices,
+        patch_dim=patch_dim,
+        max_layers=max_layers,
     )
     print("\n" + "=" * 60)
     print("CAUSAL PATCHING RESULTS SUMMARY")

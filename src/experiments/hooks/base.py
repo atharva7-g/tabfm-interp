@@ -1,6 +1,6 @@
 from dataclasses import dataclass, asdict
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional, Union
 import json
 import torch
 from datetime import datetime
@@ -8,12 +8,13 @@ from datetime import datetime
 
 @dataclass
 class ExperimentConfig:
-    corrupt_idx: int
+    corrupt_idx: Union[int, List[int]]
     noise_std: float
     seed: int
     n_train_samples: int
     patch_dim: Optional[int] = 2
     max_layers: Optional[int] = None
+    ratio_epsilon: float = 0.05
 
     def to_dict(self):
         return asdict(self)

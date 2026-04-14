@@ -9,7 +9,7 @@ from typing import Dict, Any, Optional
 DEFAULT_CONFIG = {
     "dataset_type": "multiplication",
     "heads": [0, 1, 2, 3],
-    "corrupt_idx": 1,
+    "corrupt_idx": 2,
     "noise_std": 1.0,
     "seed": 42,
     "n_samples": 1000,
@@ -19,11 +19,13 @@ DEFAULT_CONFIG = {
     "patch_dim": 2,
 }
 
+VALID_DATASET_TYPES = ["multiplication", "quadratic", "pairwise_50"]
+
 PARAM_DESCRIPTIONS = {
-    "dataset_type": "Dataset type (multiplication, quadratic)",
+    "dataset_type": "Dataset type (multiplication, quadratic, pairwise_50)",
     "heads": "Attention heads to patch (list: 0-3)",
     "tokens": "Tokens to patch (list: 0 to num_tokens-1)",
-    "corrupt_idx": "Feature to corrupt (0=a, 1=b, 2=c)",
+    "corrupt_idx": "Feature index/indices to corrupt (e.g., 2 or 0,1,2)",
     "noise_std": "Noise standard deviation",
     "seed": "Random seed",
     "n_samples": "Dataset size",
@@ -65,7 +67,12 @@ def parse_input_value(key: str, user_input: str) -> Any:
         else:
             return [int(x.strip()) for x in user_input.split()]
 
-    elif key in ["corrupt_idx", "seed", "n_samples"]:
+    elif key == "corrupt_idx":
+        if "," in user_input:
+            return [int(x.strip()) for x in user_input.split(",") if x.strip() != ""]
+        return int(user_input)
+
+    elif key in ["seed", "n_samples"]:
         return int(user_input)
 
     elif key in ["noise_std", "test_size"]:
@@ -88,12 +95,20 @@ def parse_input_value(key: str, user_input: str) -> Any:
 def validate_value(key: str, value: Any) -> tuple[bool, str]:
     """Validate a configuration value."""
     if key == "dataset_type":
-        if value not in ["multiplication", "quadratic"]:
-            return False, "must be 'multiplication' or 'quadratic'"
+        if value not in VALID_DATASET_TYPES:
+            return False, f"must be one of {VALID_DATASET_TYPES}"
 
     elif key == "corrupt_idx":
-        if not 0 <= value <= 2:
-            return False, "must be 0, 1, or 2"
+        if isinstance(value, int):
+            if value < 0:
+                return False, "must be >= 0"
+        elif isinstance(value, list):
+            if len(value) == 0:
+                return False, "list must be non-empty"
+            if not all(isinstance(v, int) and v >= 0 for v in value):
+                return False, "list values must be non-negative integers"
+        else:
+            return False, "must be an int or a list of ints"
 
     elif key == "heads":
         if not isinstance(value, list) or len(value) == 0:
