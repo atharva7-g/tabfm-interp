@@ -1,0 +1,20 @@
+{
+  "head_idx": 0,
+  "y_normal": 4.117085933685303,
+  "y_steered": 4.120731353759766,
+  "steering_effects": [
+    0.0036454200744628906,
+    0.0065021514892578125,
+    0.008121967315673828
+  ],
+  "layer_indices": [
+    0,
+    1,
+    2
+  ],
+  "best_effect": 0.008121967315673828,
+  "best_layer": 2,
+  "alpha": 1.0,
+  "script_path": "src/experiments/hooks/run_steering.py",
+  "timestamp": "20260222_222034"
+}

@@ -12,3 +12,6 @@ llm/test.py
 /src/experiments/hooks/results/
 /.aim/
 /src/ablation/results/
+changes.md
+.opencode
+docs/

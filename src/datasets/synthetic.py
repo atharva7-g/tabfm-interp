@@ -48,10 +48,10 @@ def create_quadratic_dataset(
 def create_pairwise_dataset(
     num_samples: int = 1000, seed: int = 42
 ) -> Tuple[np.ndarray, np.ndarray]:
-    """y = sum of all pairwise products (=2500)"""
+    """y = sum of ordered feature-pair products within each sample."""
     rng = np.random.default_rng(seed)
     X = rng.standard_normal((num_samples, 50)).astype(np.float32)
-    y = np.sum(X @ X.T, axis=1).astype(np.float32)
+    y = (np.sum(X, axis=1) ** 2).astype(np.float32)
     return X, y
 
 
@@ -74,6 +74,6 @@ def get_dataset_formula(dataset_type: str) -> str:
     formulas = {
         "multiplication": "y = a × b + c",
         "quadratic": "y = a² + b² + c",
-        "pairwise_50": "y = Σ(x[i] × x[j]) for all i and j",
+        "pairwise_50": "y = Σ(x[i] × x[j]) for all feature pairs (i, j) within each sample",
     }
     return formulas.get(dataset_type, "Unknown")

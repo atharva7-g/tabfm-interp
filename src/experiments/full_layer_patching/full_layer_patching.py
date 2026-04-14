@@ -10,7 +10,7 @@ from tqdm import tqdm
 from src.datasets import create_dataset, get_dataset_formula
 from src.utils.utils import set_seed
 
-DATASET_TYPE = "multiplication"
+DATASET_TYPE = "pairwise_50"
 CORRUPT_IDX = 1
 NOISE_STD = 1.0
 SEED = 42
