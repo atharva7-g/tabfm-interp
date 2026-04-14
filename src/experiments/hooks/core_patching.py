@@ -31,16 +31,65 @@ def create_corrupted_input(
     corrupt_idx: Union[int, List[int]] = 1,
     noise_std: float = 1.0,
     seed: int = 42,
+    corruption_mode: str = "gaussian_replace",
+    corruption_strength: float = 1.0,
 ) -> np.ndarray:
     rng = np.random.default_rng(seed)
     X_corrupt = X_clean.copy()
     num_samples = X_clean.shape[0]
+
     if isinstance(corrupt_idx, int):
-        X_corrupt[:, corrupt_idx] = rng.normal(0.0, noise_std, num_samples)
+        indices = [corrupt_idx]
     else:
-        X_corrupt[:, corrupt_idx] = rng.normal(
-            0.0, noise_std, (num_samples, len(corrupt_idx))
+        indices = list(corrupt_idx)
+
+    if len(indices) == 0:
+        raise ValueError("corrupt_idx list cannot be empty")
+
+    n_features = X_clean.shape[1]
+    if not all(0 <= idx < n_features for idx in indices):
+        raise ValueError(
+            f"corrupt_idx must be in [0, {n_features - 1}] for input with {n_features} features"
         )
+
+    if corruption_strength < 0:
+        raise ValueError("corruption_strength must be >= 0")
+
+    cols = np.array(indices, dtype=int)
+    selected = X_corrupt[:, cols]
+
+    if corruption_mode == "gaussian_replace":
+        X_corrupt[:, cols] = rng.normal(
+            0.0,
+            noise_std * corruption_strength,
+            (num_samples, len(indices)),
+        )
+    elif corruption_mode == "gaussian_add":
+        X_corrupt[:, cols] = selected + rng.normal(
+            0.0,
+            noise_std * corruption_strength,
+            (num_samples, len(indices)),
+        )
+    elif corruption_mode == "mean_shift":
+        X_corrupt[:, cols] = selected + (noise_std * corruption_strength)
+    elif corruption_mode == "scale":
+        X_corrupt[:, cols] = selected * corruption_strength
+    elif corruption_mode == "sign_flip":
+        X_corrupt[:, cols] = -selected * corruption_strength
+    elif corruption_mode == "fixed":
+        X_corrupt[:, cols] = corruption_strength
+    elif corruption_mode == "zero":
+        X_corrupt[:, cols] = 0.0
+    elif corruption_mode == "permute":
+        permutation = rng.permutation(num_samples)
+        X_corrupt[:, cols] = selected[permutation]
+    else:
+        raise ValueError(
+            "Unknown corruption_mode. "
+            "Use one of: gaussian_replace, gaussian_add, mean_shift, scale, "
+            "sign_flip, fixed, zero, permute"
+        )
+
     return X_corrupt
 
 

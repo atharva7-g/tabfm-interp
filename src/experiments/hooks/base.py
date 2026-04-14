@@ -12,6 +12,8 @@ class ExperimentConfig:
     noise_std: float
     seed: int
     n_train_samples: int
+    corruption_mode: str = "gaussian_replace"
+    corruption_strength: float = 1.0
     patch_dim: Optional[int] = 2
     max_layers: Optional[int] = None
     ratio_epsilon: float = 0.05

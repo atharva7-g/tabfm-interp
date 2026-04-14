@@ -11,6 +11,8 @@ DEFAULT_CONFIG = {
     "heads": [0, 1, 2, 3],
     "corrupt_idx": 2,
     "noise_std": 1.0,
+    "corruption_mode": "gaussian_replace",
+    "corruption_strength": 1.0,
     "seed": 42,
     "n_samples": 1000,
     "test_size": 0.5,
@@ -27,6 +29,8 @@ PARAM_DESCRIPTIONS = {
     "tokens": "Tokens to patch (list: 0 to num_tokens-1)",
     "corrupt_idx": "Feature index/indices to corrupt (e.g., 2 or 0,1,2)",
     "noise_std": "Noise standard deviation",
+    "corruption_mode": "Corruption mode (gaussian_replace, gaussian_add, mean_shift, scale, sign_flip, fixed, zero, permute)",
+    "corruption_strength": "Corruption strength scalar (>=0)",
     "seed": "Random seed",
     "n_samples": "Dataset size",
     "test_size": "Test split (0-1)",
@@ -78,6 +82,12 @@ def parse_input_value(key: str, user_input: str) -> Any:
     elif key in ["noise_std", "test_size"]:
         return float(user_input)
 
+    elif key == "corruption_strength":
+        return float(user_input)
+
+    elif key == "corruption_mode":
+        return user_input.strip()
+
     elif key == "device":
         if user_input.lower() in ["auto", "", "none"]:
             return None
@@ -125,6 +135,24 @@ def validate_value(key: str, value: Any) -> tuple[bool, str]:
     elif key == "noise_std":
         if value < 0:
             return False, "must be >= 0"
+
+    elif key == "corruption_strength":
+        if value < 0:
+            return False, "must be >= 0"
+
+    elif key == "corruption_mode":
+        valid_modes = [
+            "gaussian_replace",
+            "gaussian_add",
+            "mean_shift",
+            "scale",
+            "sign_flip",
+            "fixed",
+            "zero",
+            "permute",
+        ]
+        if value not in valid_modes:
+            return False, f"must be one of {valid_modes}"
 
     elif key == "test_size":
         if not 0 < value < 1:
