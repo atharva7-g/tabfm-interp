@@ -20,6 +20,7 @@ class AblationConfig:
     ablate_dim: int = 2
     ablation_type: str = "zero"
     max_layers: Optional[int] = None
+    ratio_epsilon: float = 0.05
 
 
 class AblationExperiment(BaseExperiment):
@@ -49,19 +50,31 @@ class AblationExperiment(BaseExperiment):
             ablate_dim=self.config.ablate_dim,
             ablation_type=self.config.ablation_type,
             max_layers=self.config.max_layers,
+            ratio_epsilon=self.config.ratio_epsilon,
         )
+
+        raw_ratios = [r["ablation_ratio"] for r in results]
+        stable_ratios = [r["ablation_ratio_stable"] for r in results]
+        stable_abs_ratios = [r["ablation_ratio_stable_abs"] for r in results]
+        best_by_stable_abs = max(results, key=lambda x: x["ablation_ratio_stable_abs"])
 
         summary = {
             "head_idx": head_idx,
             "y_normal": results[0]["y_normal"],
             "y_ablated": results[0]["y_ablated"],
             "ablation_effects": [r["ablation_effect"] for r in results],
-            "ablation_ratios": [r["ablation_ratio"] for r in results],
-            "layer_indices": [r["layer_idx"] for r in results],
-            "best_effect": max([abs(r["ablation_effect"]) for r in results]),
-            "best_layer": max(results, key=lambda x: abs(x["ablation_effect"]))[
-                "layer_idx"
+            "ablation_effects_abs_mean": [
+                r["ablation_effect_abs_mean"] for r in results
             ],
+            "ablation_ratios": raw_ratios,
+            "ablation_ratios_stable": stable_ratios,
+            "ablation_ratios_stable_abs": stable_abs_ratios,
+            "layer_indices": [r["layer_idx"] for r in results],
+            "best_effect": best_by_stable_abs["ablation_effect_abs_mean"],
+            "best_effect_raw_abs": max([abs(r["ablation_effect"]) for r in results]),
+            "best_ratio_raw_abs": max([abs(x) for x in raw_ratios]),
+            "best_ratio_stable_abs": max(stable_abs_ratios),
+            "best_layer": best_by_stable_abs["layer_idx"],
         }
 
         return summary, results
@@ -79,19 +92,31 @@ class AblationExperiment(BaseExperiment):
             ablate_dim=self.config.ablate_dim,
             ablation_type=self.config.ablation_type,
             max_layers=self.config.max_layers,
+            ratio_epsilon=self.config.ratio_epsilon,
         )
+
+        raw_ratios = [r["ablation_ratio"] for r in results]
+        stable_ratios = [r["ablation_ratio_stable"] for r in results]
+        stable_abs_ratios = [r["ablation_ratio_stable_abs"] for r in results]
+        best_by_stable_abs = max(results, key=lambda x: x["ablation_ratio_stable_abs"])
 
         summary = {
             "head_indices": head_indices,
             "y_normal": results[0]["y_normal"],
             "y_ablated": results[0]["y_ablated"],
             "ablation_effects": [r["ablation_effect"] for r in results],
-            "ablation_ratios": [r["ablation_ratio"] for r in results],
-            "layer_indices": [r["layer_idx"] for r in results],
-            "best_effect": max([abs(r["ablation_effect"]) for r in results]),
-            "best_layer": max(results, key=lambda x: abs(x["ablation_effect"]))[
-                "layer_idx"
+            "ablation_effects_abs_mean": [
+                r["ablation_effect_abs_mean"] for r in results
             ],
+            "ablation_ratios": raw_ratios,
+            "ablation_ratios_stable": stable_ratios,
+            "ablation_ratios_stable_abs": stable_abs_ratios,
+            "layer_indices": [r["layer_idx"] for r in results],
+            "best_effect": best_by_stable_abs["ablation_effect_abs_mean"],
+            "best_effect_raw_abs": max([abs(r["ablation_effect"]) for r in results]),
+            "best_ratio_raw_abs": max([abs(x) for x in raw_ratios]),
+            "best_ratio_stable_abs": max(stable_abs_ratios),
+            "best_layer": best_by_stable_abs["layer_idx"],
         }
 
         return summary, results
@@ -109,19 +134,31 @@ class AblationExperiment(BaseExperiment):
             ablate_dim=self.config.ablate_dim,
             ablation_type=self.config.ablation_type,
             max_layers=self.config.max_layers,
+            ratio_epsilon=self.config.ratio_epsilon,
         )
+
+        raw_ratios = [r["ablation_ratio"] for r in results]
+        stable_ratios = [r["ablation_ratio_stable"] for r in results]
+        stable_abs_ratios = [r["ablation_ratio_stable_abs"] for r in results]
+        best_by_stable_abs = max(results, key=lambda x: x["ablation_ratio_stable_abs"])
 
         summary = {
             "token_idx": token_idx,
             "y_normal": results[0]["y_normal"],
             "y_ablated": results[0]["y_ablated"],
             "ablation_effects": [r["ablation_effect"] for r in results],
-            "ablation_ratios": [r["ablation_ratio"] for r in results],
-            "layer_indices": [r["layer_idx"] for r in results],
-            "best_effect": max([abs(r["ablation_effect"]) for r in results]),
-            "best_layer": max(results, key=lambda x: abs(x["ablation_effect"]))[
-                "layer_idx"
+            "ablation_effects_abs_mean": [
+                r["ablation_effect_abs_mean"] for r in results
             ],
+            "ablation_ratios": raw_ratios,
+            "ablation_ratios_stable": stable_ratios,
+            "ablation_ratios_stable_abs": stable_abs_ratios,
+            "layer_indices": [r["layer_idx"] for r in results],
+            "best_effect": best_by_stable_abs["ablation_effect_abs_mean"],
+            "best_effect_raw_abs": max([abs(r["ablation_effect"]) for r in results]),
+            "best_ratio_raw_abs": max([abs(x) for x in raw_ratios]),
+            "best_ratio_stable_abs": max(stable_abs_ratios),
+            "best_layer": best_by_stable_abs["layer_idx"],
         }
 
         return summary, results
@@ -139,19 +176,31 @@ class AblationExperiment(BaseExperiment):
             ablate_dim=self.config.ablate_dim,
             ablation_type=self.config.ablation_type,
             max_layers=self.config.max_layers,
+            ratio_epsilon=self.config.ratio_epsilon,
         )
+
+        raw_ratios = [r["ablation_ratio"] for r in results]
+        stable_ratios = [r["ablation_ratio_stable"] for r in results]
+        stable_abs_ratios = [r["ablation_ratio_stable_abs"] for r in results]
+        best_by_stable_abs = max(results, key=lambda x: x["ablation_ratio_stable_abs"])
 
         summary = {
             "token_indices": token_indices,
             "y_normal": results[0]["y_normal"],
             "y_ablated": results[0]["y_ablated"],
             "ablation_effects": [r["ablation_effect"] for r in results],
-            "ablation_ratios": [r["ablation_ratio"] for r in results],
-            "layer_indices": [r["layer_idx"] for r in results],
-            "best_effect": max([abs(r["ablation_effect"]) for r in results]),
-            "best_layer": max(results, key=lambda x: abs(x["ablation_effect"]))[
-                "layer_idx"
+            "ablation_effects_abs_mean": [
+                r["ablation_effect_abs_mean"] for r in results
             ],
+            "ablation_ratios": raw_ratios,
+            "ablation_ratios_stable": stable_ratios,
+            "ablation_ratios_stable_abs": stable_abs_ratios,
+            "layer_indices": [r["layer_idx"] for r in results],
+            "best_effect": best_by_stable_abs["ablation_effect_abs_mean"],
+            "best_effect_raw_abs": max([abs(r["ablation_effect"]) for r in results]),
+            "best_ratio_raw_abs": max([abs(x) for x in raw_ratios]),
+            "best_ratio_stable_abs": max(stable_abs_ratios),
+            "best_layer": best_by_stable_abs["layer_idx"],
         }
 
         return summary, results
@@ -167,19 +216,31 @@ class AblationExperiment(BaseExperiment):
             ablate_dim=None,
             ablation_type=self.config.ablation_type,
             max_layers=self.config.max_layers,
+            ratio_epsilon=self.config.ratio_epsilon,
         )
+
+        raw_ratios = [r["ablation_ratio"] for r in results]
+        stable_ratios = [r["ablation_ratio_stable"] for r in results]
+        stable_abs_ratios = [r["ablation_ratio_stable_abs"] for r in results]
+        best_by_stable_abs = max(results, key=lambda x: x["ablation_ratio_stable_abs"])
 
         summary = {
             "ablate_dim": None,
             "y_normal": results[0]["y_normal"],
             "y_ablated": results[0]["y_ablated"],
             "ablation_effects": [r["ablation_effect"] for r in results],
-            "ablation_ratios": [r["ablation_ratio"] for r in results],
-            "layer_indices": [r["layer_idx"] for r in results],
-            "best_effect": max([abs(r["ablation_effect"]) for r in results]),
-            "best_layer": max(results, key=lambda x: abs(x["ablation_effect"]))[
-                "layer_idx"
+            "ablation_effects_abs_mean": [
+                r["ablation_effect_abs_mean"] for r in results
             ],
+            "ablation_ratios": raw_ratios,
+            "ablation_ratios_stable": stable_ratios,
+            "ablation_ratios_stable_abs": stable_abs_ratios,
+            "layer_indices": [r["layer_idx"] for r in results],
+            "best_effect": best_by_stable_abs["ablation_effect_abs_mean"],
+            "best_effect_raw_abs": max([abs(r["ablation_effect"]) for r in results]),
+            "best_ratio_raw_abs": max([abs(x) for x in raw_ratios]),
+            "best_ratio_stable_abs": max(stable_abs_ratios),
+            "best_layer": best_by_stable_abs["layer_idx"],
         }
 
         return summary, results
@@ -197,6 +258,10 @@ class AblationExperiment(BaseExperiment):
             "y_ablated": summary["y_ablated"],
             "ablation_effects": torch.tensor(summary["ablation_effects"]),
             "ablation_ratios": torch.tensor(summary["ablation_ratios"]),
+            "ablation_ratios_stable": torch.tensor(summary["ablation_ratios_stable"]),
+            "ablation_ratios_stable_abs": torch.tensor(
+                summary["ablation_ratios_stable_abs"]
+            ),
             "layer_indices": torch.tensor(summary["layer_indices"]),
         }
         self.save_tensors(tensors, "tensors", f"head_{head_idx}")
@@ -216,6 +281,10 @@ class AblationExperiment(BaseExperiment):
             "y_ablated": summary["y_ablated"],
             "ablation_effects": torch.tensor(summary["ablation_effects"]),
             "ablation_ratios": torch.tensor(summary["ablation_ratios"]),
+            "ablation_ratios_stable": torch.tensor(summary["ablation_ratios_stable"]),
+            "ablation_ratios_stable_abs": torch.tensor(
+                summary["ablation_ratios_stable_abs"]
+            ),
             "layer_indices": torch.tensor(summary["layer_indices"]),
         }
         self.save_tensors(tensors, "tensors", f"token_{token_idx}")
@@ -235,6 +304,10 @@ class AblationExperiment(BaseExperiment):
             "y_ablated": summary["y_ablated"],
             "ablation_effects": torch.tensor(summary["ablation_effects"]),
             "ablation_ratios": torch.tensor(summary["ablation_ratios"]),
+            "ablation_ratios_stable": torch.tensor(summary["ablation_ratios_stable"]),
+            "ablation_ratios_stable_abs": torch.tensor(
+                summary["ablation_ratios_stable_abs"]
+            ),
             "layer_indices": torch.tensor(summary["layer_indices"]),
         }
         self.save_tensors(tensors, "tensors", "full_layer")
@@ -247,7 +320,9 @@ class AblationExperiment(BaseExperiment):
 
         layer_indices = summary["layer_indices"]
         ablation_effects = summary["ablation_effects"]
-        ablation_ratios = summary["ablation_ratios"]
+        ablation_ratios = summary.get(
+            "ablation_ratios_stable", summary["ablation_ratios"]
+        )
 
         ax1.plot(layer_indices, ablation_effects, "o-", linewidth=2, markersize=8)
         ax1.axhline(y=0, color="k", linestyle="-", alpha=0.3)
@@ -268,7 +343,7 @@ class AblationExperiment(BaseExperiment):
         ax2.axhline(y=0, color="k", linestyle="-", alpha=0.3)
         ax2.set_xlabel("Layer Index")
         ax2.set_ylabel("Ablation Ratio %")
-        ax2.set_title("Full Layer Ablation: Ratio")
+        ax2.set_title("Full Layer Ablation: Stable Ratio")
         ax2.legend()
         ax2.grid(True, alpha=0.3)
 
@@ -286,7 +361,9 @@ class AblationExperiment(BaseExperiment):
 
         layer_indices = summary["layer_indices"]
         ablation_effects = summary["ablation_effects"]
-        ablation_ratios = summary["ablation_ratios"]
+        ablation_ratios = summary.get(
+            "ablation_ratios_stable", summary["ablation_ratios"]
+        )
 
         ax1.plot(layer_indices, ablation_effects, "o-", linewidth=2, markersize=8)
         ax1.axhline(y=0, color="k", linestyle="-", alpha=0.3)
@@ -307,7 +384,7 @@ class AblationExperiment(BaseExperiment):
         ax2.axhline(y=0, color="k", linestyle="-", alpha=0.3)
         ax2.set_xlabel("Layer Index")
         ax2.set_ylabel("Ablation Ratio %")
-        ax2.set_title(f"Head {head_idx}: Ablation Ratio")
+        ax2.set_title(f"Head {head_idx}: Stable Ablation Ratio")
         ax2.legend()
         ax2.grid(True, alpha=0.3)
 
@@ -325,7 +402,9 @@ class AblationExperiment(BaseExperiment):
 
         layer_indices = summary["layer_indices"]
         ablation_effects = summary["ablation_effects"]
-        ablation_ratios = summary["ablation_ratios"]
+        ablation_ratios = summary.get(
+            "ablation_ratios_stable", summary["ablation_ratios"]
+        )
 
         ax1.plot(layer_indices, ablation_effects, "o-", linewidth=2, markersize=8)
         ax1.axhline(y=0, color="k", linestyle="-", alpha=0.3)
@@ -346,7 +425,7 @@ class AblationExperiment(BaseExperiment):
         ax2.axhline(y=0, color="k", linestyle="-", alpha=0.3)
         ax2.set_xlabel("Layer Index")
         ax2.set_ylabel("Ablation Ratio %")
-        ax2.set_title(f"Token {token_idx}: Ablation Ratio")
+        ax2.set_title(f"Token {token_idx}: Stable Ablation Ratio")
         ax2.legend()
         ax2.grid(True, alpha=0.3)
 
@@ -379,7 +458,9 @@ class AblationExperiment(BaseExperiment):
 
             layer_indices = summary["layer_indices"]
             ablation_effects = summary["ablation_effects"]
-            ablation_ratios = summary["ablation_ratios"]
+            ablation_ratios = summary.get(
+                "ablation_ratios_stable", summary["ablation_ratios"]
+            )
 
             ax1.plot(
                 layer_indices,
@@ -410,7 +491,7 @@ class AblationExperiment(BaseExperiment):
         ax2.axhline(y=0, color="k", linestyle="--", alpha=0.5)
         ax2.set_xlabel("Layer Index")
         ax2.set_ylabel("Ablation Ratio %")
-        ax2.set_title("Ablation Ratio Comparison")
+        ax2.set_title("Stable Ablation Ratio Comparison")
         ax2.legend()
         ax2.grid(True, alpha=0.3)
 

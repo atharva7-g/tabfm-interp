@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import sys
+import argparse
 from pathlib import Path
 import torch
 from sklearn.model_selection import train_test_split
@@ -19,13 +20,32 @@ HEADS = [0, 1, 2, 3]
 TOKENS = [0, 1, 2]
 SEED = 42
 N_SAMPLES = 1000
-TEST_SIZE = 0.5
+TEST_SIZE = 0.8
 OUTPUT_DIR = "results/"
 ABLATE_DIM = 2
 ABLATION_TYPE = "zero"
 
 
+def parse_args():
+    parser = argparse.ArgumentParser(description="Run TabPFN ablation experiments")
+    parser.add_argument(
+        "--eval-samples",
+        type=int,
+        default=64,
+        help="Number of test samples to evaluate (default: 64)",
+    )
+    parser.add_argument(
+        "--ratio-epsilon",
+        type=float,
+        default=0.05,
+        help="Minimum denominator for stable ablation ratios (default: 0.05)",
+    )
+    return parser.parse_args()
+
+
 def main():
+    args = parse_args()
+
     with AimExperimentTracker(
         experiment_name="ablation",
         tags=[
@@ -43,6 +63,8 @@ def main():
             "output_dir": OUTPUT_DIR,
             "ablate_dim": ABLATE_DIM,
             "ablation_type": ABLATION_TYPE,
+            "eval_samples": args.eval_samples,
+            "ratio_epsilon": args.ratio_epsilon,
         }
         tracker.log_params(config)
 
@@ -65,10 +87,12 @@ def main():
             X, y, test_size=TEST_SIZE, random_state=SEED
         )
 
-        X_test_sample = X_test[0:1]
-        print(f"Test sample shape: {X_test_sample.shape}")
+        n_eval = max(1, min(args.eval_samples, len(X_test)))
+        X_eval = X_test[:n_eval]
+        print(f"Eval sample shape: {X_eval.shape}")
         print(
-            f"Test sample values: a={X_test_sample[0, 0]:.4f}, b={X_test_sample[0, 1]:.4f}, c={X_test_sample[0, 2]:.4f}"
+            f"First eval row (first 3 features): "
+            f"x0={X_eval[0, 0]:.4f}, x1={X_eval[0, 1]:.4f}, x2={X_eval[0, 2]:.4f}"
         )
 
         print("\nLoading TabPFN model...")
@@ -82,6 +106,7 @@ def main():
             n_train_samples=len(X_train),
             ablate_dim=ABLATE_DIM,
             ablation_type=ABLATION_TYPE,
+            ratio_epsilon=args.ratio_epsilon,
         )
 
         script_path = str(Path(__file__).relative_to(Path.cwd()))
@@ -103,7 +128,7 @@ def main():
 
         if ABLATE_DIM is None:
             summary, raw_results = experiment.ablate_full_layer(
-                X=X_test_sample,
+                X=X_eval,
             )
             all_summaries.append(summary)
             experiment.save_full_layer_results(summary, raw_results, script_path)
@@ -111,22 +136,26 @@ def main():
             print(
                 f"  Best effect: {summary['best_effect']:.6f} at layer {summary['best_layer']}"
             )
+            best_idx = summary["layer_indices"].index(summary["best_layer"])
             tracker.log_ablation_layer(
                 layer_idx=summary["best_layer"],
                 effect=summary["best_effect"],
-                ratio=abs(summary["best_effect"]) / (abs(summary["y_normal"]) + 1e-8),
+                ratio=summary["ablation_ratios_stable"][best_idx],
             )
             tracker.log_summary(
                 y_normal=summary["y_normal"],
                 y_ablated=summary["y_ablated"],
                 best_effect=summary["best_effect"],
                 best_layer=summary["best_layer"],
+                best_ratio_raw_abs=summary["best_ratio_raw_abs"],
+                best_ratio_stable_abs=summary["best_ratio_stable_abs"],
+                ratio_epsilon=args.ratio_epsilon,
             )
         elif ABLATE_DIM == 1:
             for token_idx in TOKENS:
                 summary, raw_results = experiment.ablate_single_token(
                     token_idx=token_idx,
-                    X=X_test_sample,
+                    X=X_eval,
                 )
                 all_summaries.append(summary)
 
@@ -137,18 +166,18 @@ def main():
                 print(
                     f"  Token {token_idx}: Best effect: {summary['best_effect']:.6f} at layer {summary['best_layer']}"
                 )
+                best_idx = summary["layer_indices"].index(summary["best_layer"])
                 tracker.log_ablation_layer(
                     layer_idx=summary["best_layer"],
                     effect=summary["best_effect"],
-                    ratio=abs(summary["best_effect"])
-                    / (abs(summary["y_normal"]) + 1e-8),
+                    ratio=summary["ablation_ratios_stable"][best_idx],
                     token_idx=token_idx,
                 )
         else:
             for head_idx in HEADS:
                 summary, raw_results = experiment.ablate_single_head(
                     head_idx=head_idx,
-                    X=X_test_sample,
+                    X=X_eval,
                 )
                 all_summaries.append(summary)
 
@@ -159,11 +188,11 @@ def main():
                 print(
                     f"  Head {head_idx}: Best effect: {summary['best_effect']:.6f} at layer {summary['best_layer']}"
                 )
+                best_idx = summary["layer_indices"].index(summary["best_layer"])
                 tracker.log_ablation_layer(
                     layer_idx=summary["best_layer"],
                     effect=summary["best_effect"],
-                    ratio=abs(summary["best_effect"])
-                    / (abs(summary["y_normal"]) + 1e-8),
+                    ratio=summary["ablation_ratios_stable"][best_idx],
                     head_idx=head_idx,
                 )
 
@@ -174,6 +203,8 @@ def main():
         print("\n" + "=" * 60)
         print("EXPERIMENT SUMMARY")
         print("=" * 60)
+        print(f"\nEvaluated samples: {n_eval}")
+        print(f"Stable ratio epsilon: {args.ratio_epsilon}")
         print(f"\nNormal output: {all_summaries[0]['y_normal']:.6f}")
         print(f"Ablated output: {all_summaries[0]['y_ablated']:.6f}")
 
@@ -182,22 +213,36 @@ def main():
             y_ablated=all_summaries[0]["y_ablated"],
             best_effect=all_summaries[0]["best_effect"],
             best_layer=all_summaries[0]["best_layer"],
+            best_ratio_raw_abs=all_summaries[0]["best_ratio_raw_abs"],
+            best_ratio_stable_abs=all_summaries[0]["best_ratio_stable_abs"],
+            ratio_epsilon=args.ratio_epsilon,
         )
 
         if ABLATE_DIM is None:
             print("\nFull layer ablation results:")
-            print(f"{'Layer':<8} {'Best Effect':<15}")
-            print("-" * 25)
             print(
-                f"{all_summaries[0]['best_layer']:<8} {all_summaries[0]['best_effect']:<15.6f}"
+                f"{'Layer':<8} {'Best Effect':<15} {'Stable Ratio':<14} {'Raw |Ratio|':<12}"
+            )
+            print("-" * 52)
+            print(
+                f"{all_summaries[0]['best_layer']:<8} "
+                f"{all_summaries[0]['best_effect']:<15.6f} "
+                f"{all_summaries[0]['best_ratio_stable_abs'] * 100:<13.2f}% "
+                f"{all_summaries[0]['best_ratio_raw_abs'] * 100:<11.2f}%"
             )
         elif ABLATE_DIM == 1:
             print("\nToken-by-token results:")
-            print(f"{'Token':<8} {'Best Effect':<15} {'Best Layer':<12}")
-            print("-" * 35)
+            print(
+                f"{'Token':<8} {'Best Effect':<15} {'Stable Ratio':<14} {'Raw |Ratio|':<12} {'Best Layer':<12}"
+            )
+            print("-" * 72)
             for summary in all_summaries:
                 print(
-                    f"{summary['token_idx']:<8} {summary['best_effect']:<15.6f} {summary['best_layer']:<12}"
+                    f"{summary['token_idx']:<8} "
+                    f"{summary['best_effect']:<15.6f} "
+                    f"{summary['best_ratio_stable_abs'] * 100:<13.2f}% "
+                    f"{summary['best_ratio_raw_abs'] * 100:<11.2f}% "
+                    f"{summary['best_layer']:<12}"
                 )
 
             best_token = max(all_summaries, key=lambda x: x["best_effect"])
@@ -207,14 +252,22 @@ def main():
             tracker.log_summary(
                 best_token=best_token["token_idx"],
                 best_token_effect=best_token["best_effect"],
+                best_token_ratio_raw_abs=best_token["best_ratio_raw_abs"],
+                best_token_ratio_stable_abs=best_token["best_ratio_stable_abs"],
             )
         else:
             print("\nHead-by-head results:")
-            print(f"{'Head':<8} {'Best Effect':<15} {'Best Layer':<12}")
-            print("-" * 35)
+            print(
+                f"{'Head':<8} {'Best Effect':<15} {'Stable Ratio':<14} {'Raw |Ratio|':<12} {'Best Layer':<12}"
+            )
+            print("-" * 72)
             for summary in all_summaries:
                 print(
-                    f"{summary['head_idx']:<8} {summary['best_effect']:<15.6f} {summary['best_layer']:<12}"
+                    f"{summary['head_idx']:<8} "
+                    f"{summary['best_effect']:<15.6f} "
+                    f"{summary['best_ratio_stable_abs'] * 100:<13.2f}% "
+                    f"{summary['best_ratio_raw_abs'] * 100:<11.2f}% "
+                    f"{summary['best_layer']:<12}"
                 )
 
             best_head = max(all_summaries, key=lambda x: x["best_effect"])
@@ -224,6 +277,8 @@ def main():
             tracker.log_summary(
                 best_head=best_head["head_idx"],
                 best_head_effect=best_head["best_effect"],
+                best_head_ratio_raw_abs=best_head["best_ratio_raw_abs"],
+                best_head_ratio_stable_abs=best_head["best_ratio_stable_abs"],
             )
 
         print(f"\nResults saved to: {dataset_output_dir}/")

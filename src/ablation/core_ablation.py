@@ -65,6 +65,7 @@ def sweep_layers_for_ablation(
     ablate_dim: Optional[int] = 2,
     ablation_type: str = "zero",
     max_layers: Optional[int] = None,
+    ratio_epsilon: float = 0.05,
 ) -> List[Dict[str, float]]:
     model = regressor.model_
     total_layers = len(model.transformer_encoder.layers)
@@ -81,6 +82,7 @@ def sweep_layers_for_ablation(
             ablate_indices,
             ablate_dim,
             ablation_type,
+            ratio_epsilon,
         )
         results.append(result)
     return results
@@ -93,6 +95,7 @@ def run_single_layer_ablation(
     ablate_indices: Union[int, List[int]],
     ablate_dim: Optional[int] = 2,
     ablation_type: str = "zero",
+    ratio_epsilon: float = 0.05,
 ) -> Dict[str, float]:
     model = regressor.model_
     layer = model.transformer_encoder.layers[layer_idx]
@@ -109,22 +112,39 @@ def run_single_layer_ablation(
     with torch.no_grad():
         y_normal = regressor.predict(X)
 
-    y_ablated_val = (
-        float(y_ablated[0]) if len(y_ablated.shape) > 0 else float(y_ablated)
-    )
-    y_normal_val = float(y_normal[0]) if len(y_normal.shape) > 0 else float(y_normal)
+    y_ablated_arr = np.asarray(y_ablated, dtype=np.float64).reshape(-1)
+    y_normal_arr = np.asarray(y_normal, dtype=np.float64).reshape(-1)
 
-    ablation_effect = y_normal_val - y_ablated_val
-    ablation_ratio = (
-        ablation_effect / abs(y_normal_val) if abs(y_normal_val) > 1e-10 else 0.0
-    )
+    y_ablated_val = float(np.mean(y_ablated_arr))
+    y_normal_val = float(np.mean(y_normal_arr))
+
+    delta_arr = y_normal_arr - y_ablated_arr
+    ablation_effect = float(np.mean(delta_arr))
+    ablation_effect_abs_mean = float(np.mean(np.abs(delta_arr)))
+
+    if abs(y_normal_val) > 1e-10:
+        ablation_ratio = ablation_effect / abs(y_normal_val)
+    else:
+        ablation_ratio = 0.0
+
+    normal_scale = float(np.mean(np.abs(y_normal_arr)))
+    stable_denominator = max(normal_scale, ratio_epsilon)
+    ablation_ratio_stable = ablation_effect / stable_denominator
+    ablation_ratio_stable_abs = ablation_effect_abs_mean / stable_denominator
 
     return {
         "y_normal": y_normal_val,
         "y_ablated": y_ablated_val,
         "ablation_effect": ablation_effect,
+        "ablation_effect_abs_mean": ablation_effect_abs_mean,
         "ablation_ratio": ablation_ratio,
+        "ablation_ratio_stable": ablation_ratio_stable,
+        "ablation_ratio_stable_abs": ablation_ratio_stable_abs,
+        "normal_scale": normal_scale,
+        "ratio_epsilon": ratio_epsilon,
+        "stable_denominator": stable_denominator,
         "layer_idx": layer_idx,
+        "n_eval_samples": int(y_normal_arr.size),
     }
 
 

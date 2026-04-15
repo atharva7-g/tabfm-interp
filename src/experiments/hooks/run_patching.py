@@ -3,6 +3,7 @@
 import sys
 import argparse
 from pathlib import Path
+from typing import Any
 import torch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
@@ -19,6 +20,17 @@ from src.experiments.hooks.config import (
 )
 from src.tracking import AimExperimentTracker
 from tabpfn import TabPFNRegressor
+
+VALID_CORRUPTION_MODES = [
+    "gaussian_replace",
+    "gaussian_add",
+    "mean_shift",
+    "scale",
+    "sign_flip",
+    "fixed",
+    "zero",
+    "permute",
+]
 
 
 def find_default_config():
@@ -64,6 +76,19 @@ def parse_args():
         default=None,
         help="Override corrupt_idx from config; accepts int or comma-separated ints",
     )
+    parser.add_argument(
+        "--corruption-mode",
+        type=str,
+        default=None,
+        choices=VALID_CORRUPTION_MODES,
+        help="Corruption mode override",
+    )
+    parser.add_argument(
+        "--corruption-strength",
+        type=float,
+        default=None,
+        help="Corruption strength override (>=0)",
+    )
     return parser.parse_args()
 
 
@@ -82,6 +107,14 @@ def format_corrupt_tag(corrupt_idx):
             return "-".join(map(str, corrupt_idx))
         return f"multi{len(corrupt_idx)}"
     return str(corrupt_idx)
+
+
+def apply_corruption_defaults(config: dict[str, Any]) -> dict[str, Any]:
+    if "corruption_mode" not in config or config["corruption_mode"] is None:
+        config["corruption_mode"] = "gaussian_replace"
+    if "corruption_strength" not in config or config["corruption_strength"] is None:
+        config["corruption_strength"] = 1.0
+    return config
 
 
 def recommend_corrupt_idx(dataset_type: str, current_corrupt_idx):
@@ -130,6 +163,14 @@ def main():
     if args.corrupt_idx is not None:
         config["corrupt_idx"] = parse_corrupt_idx(args.corrupt_idx)
 
+    config = apply_corruption_defaults(config)
+
+    if args.corruption_mode is not None:
+        config["corruption_mode"] = args.corruption_mode
+
+    if args.corruption_strength is not None:
+        config["corruption_strength"] = args.corruption_strength
+
     config["eval_samples"] = args.eval_samples
     config["ratio_epsilon"] = args.ratio_epsilon
     config["corrupt_idx"] = recommend_corrupt_idx(
@@ -142,6 +183,7 @@ def main():
         tags=[
             config["dataset_type"],
             f"corrupt_{format_corrupt_tag(config['corrupt_idx'])}",
+            f"mode_{config['corruption_mode']}",
         ],
     ) as tracker:
         save_config(config)
@@ -180,6 +222,8 @@ def main():
             corrupt_idx=config["corrupt_idx"],
             noise_std=config["noise_std"],
             seed=config["seed"],
+            corruption_mode=config["corruption_mode"],
+            corruption_strength=config["corruption_strength"],
         )
         # print(f"Corrupted input: b={X_corrupt[0, config['corrupt_idx']]:.4f} (noise)")
 
@@ -195,6 +239,8 @@ def main():
             noise_std=config["noise_std"],
             seed=config["seed"],
             n_train_samples=len(X_train),
+            corruption_mode=config["corruption_mode"],
+            corruption_strength=config["corruption_strength"],
             patch_dim=patch_dim,
             ratio_epsilon=args.ratio_epsilon,
         )
@@ -291,6 +337,9 @@ def main():
         print("=" * 60)
         print(f"\nEvaluated samples: {n_eval}")
         print(f"Stable ratio epsilon: {args.ratio_epsilon}")
+        print(f"Corruption mode: {config['corruption_mode']}")
+        print(f"Corruption strength: {config['corruption_strength']}")
+        print(f"Corrupt idx: {config['corrupt_idx']}")
         print(f"\nClean output: {all_summaries[0]['y_clean']:.6f}")
         print(f"Corrupted output: {all_summaries[0]['y_corrupt']:.6f}")
         clean_corrupt_diff = all_summaries[0]["y_clean"] - all_summaries[0]["y_corrupt"]
@@ -356,7 +405,8 @@ def main():
             image_captions = {}
             dataset_name = config["dataset_type"]
             corrupt_info = (
-                f"corrupt_idx={config['corrupt_idx']}, noise_std={config['noise_std']}"
+                f"corrupt_idx={config['corrupt_idx']}, noise_std={config['noise_std']}, "
+                f"mode={config['corruption_mode']}, strength={config['corruption_strength']}"
             )
 
             for img_path in experiment.created_images:
