@@ -17,6 +17,9 @@ class ExperimentConfig:
     patch_dim: Optional[int] = 2
     max_layers: Optional[int] = None
     ratio_epsilon: float = 0.05
+    ratio_threshold: Optional[float] = None
+    y_scale: Optional[float] = None
+    metric_mode: str = "regime"
 
     def to_dict(self):
         return asdict(self)

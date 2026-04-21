@@ -21,6 +21,8 @@ class AblationConfig:
     ablation_type: str = "zero"
     max_layers: Optional[int] = None
     ratio_epsilon: float = 0.05
+    y_scale: Optional[float] = None
+    scale_mode: str = "y_scale"
 
 
 class AblationExperiment(BaseExperiment):
@@ -51,6 +53,8 @@ class AblationExperiment(BaseExperiment):
             ablation_type=self.config.ablation_type,
             max_layers=self.config.max_layers,
             ratio_epsilon=self.config.ratio_epsilon,
+            y_scale=self.config.y_scale,
+            scale_mode=self.config.scale_mode,
         )
 
         raw_ratios = [r["ablation_ratio"] for r in results]
@@ -66,6 +70,7 @@ class AblationExperiment(BaseExperiment):
             "ablation_effects_abs_mean": [
                 r["ablation_effect_abs_mean"] for r in results
             ],
+            "ablation_effect_sigmas": [r["ablation_effect_sigma"] for r in results],
             "ablation_ratios": raw_ratios,
             "ablation_ratios_stable": stable_ratios,
             "ablation_ratios_stable_abs": stable_abs_ratios,
@@ -74,6 +79,8 @@ class AblationExperiment(BaseExperiment):
             "best_effect_raw_abs": max([abs(r["ablation_effect"]) for r in results]),
             "best_ratio_raw_abs": max([abs(x) for x in raw_ratios]),
             "best_ratio_stable_abs": max(stable_abs_ratios),
+            "best_effect_sigma": best_by_stable_abs["ablation_effect_sigma"],
+            "y_scale": results[0]["y_scale"],
             "best_layer": best_by_stable_abs["layer_idx"],
         }
 
@@ -93,6 +100,8 @@ class AblationExperiment(BaseExperiment):
             ablation_type=self.config.ablation_type,
             max_layers=self.config.max_layers,
             ratio_epsilon=self.config.ratio_epsilon,
+            y_scale=self.config.y_scale,
+            scale_mode=self.config.scale_mode,
         )
 
         raw_ratios = [r["ablation_ratio"] for r in results]
@@ -108,6 +117,7 @@ class AblationExperiment(BaseExperiment):
             "ablation_effects_abs_mean": [
                 r["ablation_effect_abs_mean"] for r in results
             ],
+            "ablation_effect_sigmas": [r["ablation_effect_sigma"] for r in results],
             "ablation_ratios": raw_ratios,
             "ablation_ratios_stable": stable_ratios,
             "ablation_ratios_stable_abs": stable_abs_ratios,
@@ -116,6 +126,8 @@ class AblationExperiment(BaseExperiment):
             "best_effect_raw_abs": max([abs(r["ablation_effect"]) for r in results]),
             "best_ratio_raw_abs": max([abs(x) for x in raw_ratios]),
             "best_ratio_stable_abs": max(stable_abs_ratios),
+            "best_effect_sigma": best_by_stable_abs["ablation_effect_sigma"],
+            "y_scale": results[0]["y_scale"],
             "best_layer": best_by_stable_abs["layer_idx"],
         }
 
@@ -135,6 +147,8 @@ class AblationExperiment(BaseExperiment):
             ablation_type=self.config.ablation_type,
             max_layers=self.config.max_layers,
             ratio_epsilon=self.config.ratio_epsilon,
+            y_scale=self.config.y_scale,
+            scale_mode=self.config.scale_mode,
         )
 
         raw_ratios = [r["ablation_ratio"] for r in results]
@@ -150,6 +164,7 @@ class AblationExperiment(BaseExperiment):
             "ablation_effects_abs_mean": [
                 r["ablation_effect_abs_mean"] for r in results
             ],
+            "ablation_effect_sigmas": [r["ablation_effect_sigma"] for r in results],
             "ablation_ratios": raw_ratios,
             "ablation_ratios_stable": stable_ratios,
             "ablation_ratios_stable_abs": stable_abs_ratios,
@@ -158,6 +173,8 @@ class AblationExperiment(BaseExperiment):
             "best_effect_raw_abs": max([abs(r["ablation_effect"]) for r in results]),
             "best_ratio_raw_abs": max([abs(x) for x in raw_ratios]),
             "best_ratio_stable_abs": max(stable_abs_ratios),
+            "best_effect_sigma": best_by_stable_abs["ablation_effect_sigma"],
+            "y_scale": results[0]["y_scale"],
             "best_layer": best_by_stable_abs["layer_idx"],
         }
 
@@ -177,6 +194,8 @@ class AblationExperiment(BaseExperiment):
             ablation_type=self.config.ablation_type,
             max_layers=self.config.max_layers,
             ratio_epsilon=self.config.ratio_epsilon,
+            y_scale=self.config.y_scale,
+            scale_mode=self.config.scale_mode,
         )
 
         raw_ratios = [r["ablation_ratio"] for r in results]
@@ -192,6 +211,7 @@ class AblationExperiment(BaseExperiment):
             "ablation_effects_abs_mean": [
                 r["ablation_effect_abs_mean"] for r in results
             ],
+            "ablation_effect_sigmas": [r["ablation_effect_sigma"] for r in results],
             "ablation_ratios": raw_ratios,
             "ablation_ratios_stable": stable_ratios,
             "ablation_ratios_stable_abs": stable_abs_ratios,
@@ -200,6 +220,8 @@ class AblationExperiment(BaseExperiment):
             "best_effect_raw_abs": max([abs(r["ablation_effect"]) for r in results]),
             "best_ratio_raw_abs": max([abs(x) for x in raw_ratios]),
             "best_ratio_stable_abs": max(stable_abs_ratios),
+            "best_effect_sigma": best_by_stable_abs["ablation_effect_sigma"],
+            "y_scale": results[0]["y_scale"],
             "best_layer": best_by_stable_abs["layer_idx"],
         }
 
@@ -217,6 +239,8 @@ class AblationExperiment(BaseExperiment):
             ablation_type=self.config.ablation_type,
             max_layers=self.config.max_layers,
             ratio_epsilon=self.config.ratio_epsilon,
+            y_scale=self.config.y_scale,
+            scale_mode=self.config.scale_mode,
         )
 
         raw_ratios = [r["ablation_ratio"] for r in results]
@@ -232,6 +256,7 @@ class AblationExperiment(BaseExperiment):
             "ablation_effects_abs_mean": [
                 r["ablation_effect_abs_mean"] for r in results
             ],
+            "ablation_effect_sigmas": [r["ablation_effect_sigma"] for r in results],
             "ablation_ratios": raw_ratios,
             "ablation_ratios_stable": stable_ratios,
             "ablation_ratios_stable_abs": stable_abs_ratios,
@@ -240,6 +265,8 @@ class AblationExperiment(BaseExperiment):
             "best_effect_raw_abs": max([abs(r["ablation_effect"]) for r in results]),
             "best_ratio_raw_abs": max([abs(x) for x in raw_ratios]),
             "best_ratio_stable_abs": max(stable_abs_ratios),
+            "best_effect_sigma": best_by_stable_abs["ablation_effect_sigma"],
+            "y_scale": results[0]["y_scale"],
             "best_layer": best_by_stable_abs["layer_idx"],
         }
 
@@ -324,8 +351,15 @@ class AblationExperiment(BaseExperiment):
             "ablation_ratios_stable", summary["ablation_ratios"]
         )
 
-        ax1.plot(layer_indices, ablation_effects, "o-", linewidth=2, markersize=8)
-        ax1.axhline(y=0, color="k", linestyle="-", alpha=0.3)
+        ax1.plot(
+            layer_indices,
+            ablation_effects,
+            "o-",
+            linewidth=2,
+            markersize=8,
+            label="Ablation effect",
+        )
+        ax1.axhline(y=0, color="k", linestyle="-", alpha=0.3, label="Baseline")
         ax1.set_xlabel("Layer Index")
         ax1.set_ylabel("Ablation Effect")
         ax1.set_title("Full Layer Ablation: Effect by Layer")
@@ -339,8 +373,9 @@ class AblationExperiment(BaseExperiment):
             linewidth=2,
             markersize=8,
             color="orange",
+            label="Stable ratio",
         )
-        ax2.axhline(y=0, color="k", linestyle="-", alpha=0.3)
+        ax2.axhline(y=0, color="k", linestyle="-", alpha=0.3, label="Baseline")
         ax2.set_xlabel("Layer Index")
         ax2.set_ylabel("Ablation Ratio %")
         ax2.set_title("Full Layer Ablation: Stable Ratio")
@@ -365,8 +400,15 @@ class AblationExperiment(BaseExperiment):
             "ablation_ratios_stable", summary["ablation_ratios"]
         )
 
-        ax1.plot(layer_indices, ablation_effects, "o-", linewidth=2, markersize=8)
-        ax1.axhline(y=0, color="k", linestyle="-", alpha=0.3)
+        ax1.plot(
+            layer_indices,
+            ablation_effects,
+            "o-",
+            linewidth=2,
+            markersize=8,
+            label="Ablation effect",
+        )
+        ax1.axhline(y=0, color="k", linestyle="-", alpha=0.3, label="Baseline")
         ax1.set_xlabel("Layer Index")
         ax1.set_ylabel("Ablation Effect")
         ax1.set_title(f"Head {head_idx}: Ablation Effect by Layer")
@@ -380,8 +422,9 @@ class AblationExperiment(BaseExperiment):
             linewidth=2,
             markersize=8,
             color="orange",
+            label="Stable ratio",
         )
-        ax2.axhline(y=0, color="k", linestyle="-", alpha=0.3)
+        ax2.axhline(y=0, color="k", linestyle="-", alpha=0.3, label="Baseline")
         ax2.set_xlabel("Layer Index")
         ax2.set_ylabel("Ablation Ratio %")
         ax2.set_title(f"Head {head_idx}: Stable Ablation Ratio")
@@ -406,8 +449,15 @@ class AblationExperiment(BaseExperiment):
             "ablation_ratios_stable", summary["ablation_ratios"]
         )
 
-        ax1.plot(layer_indices, ablation_effects, "o-", linewidth=2, markersize=8)
-        ax1.axhline(y=0, color="k", linestyle="-", alpha=0.3)
+        ax1.plot(
+            layer_indices,
+            ablation_effects,
+            "o-",
+            linewidth=2,
+            markersize=8,
+            label="Ablation effect",
+        )
+        ax1.axhline(y=0, color="k", linestyle="-", alpha=0.3, label="Baseline")
         ax1.set_xlabel("Layer Index")
         ax1.set_ylabel("Ablation Effect")
         ax1.set_title(f"Token {token_idx}: Ablation Effect by Layer")
@@ -421,8 +471,9 @@ class AblationExperiment(BaseExperiment):
             linewidth=2,
             markersize=8,
             color="orange",
+            label="Stable ratio",
         )
-        ax2.axhline(y=0, color="k", linestyle="-", alpha=0.3)
+        ax2.axhline(y=0, color="k", linestyle="-", alpha=0.3, label="Baseline")
         ax2.set_xlabel("Layer Index")
         ax2.set_ylabel("Ablation Ratio %")
         ax2.set_title(f"Token {token_idx}: Stable Ablation Ratio")

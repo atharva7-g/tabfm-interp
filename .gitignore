@@ -13,6 +13,7 @@ llm/test.py
 /.aim/
 /src/ablation/results/
 changes.md
+HYPERPARAMETERS.md
 .opencode
 docs/
 /results/

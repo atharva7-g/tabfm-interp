@@ -4,6 +4,7 @@ import sys
 import argparse
 from pathlib import Path
 from typing import Any
+import numpy as np
 import torch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
@@ -31,6 +32,8 @@ VALID_CORRUPTION_MODES = [
     "zero",
     "permute",
 ]
+
+VALID_METRIC_MODES = ["legacy", "regime"]
 
 
 def find_default_config():
@@ -71,6 +74,12 @@ def parse_args():
         help="Minimum denominator for stable recovery metrics (default: 0.05)",
     )
     parser.add_argument(
+        "--ratio-threshold",
+        type=float,
+        default=None,
+        help="Gap threshold for fractional recovery validity (default: 0.05 * y_scale)",
+    )
+    parser.add_argument(
         "--corrupt-idx",
         type=str,
         default=None,
@@ -88,6 +97,13 @@ def parse_args():
         type=float,
         default=None,
         help="Corruption strength override (>=0)",
+    )
+    parser.add_argument(
+        "--metric-mode",
+        type=str,
+        default="regime",
+        choices=VALID_METRIC_MODES,
+        help="Metric mode: legacy (old behavior) or regime (new behavior)",
     )
     return parser.parse_args()
 
@@ -115,6 +131,72 @@ def apply_corruption_defaults(config: dict[str, Any]) -> dict[str, Any]:
     if "corruption_strength" not in config or config["corruption_strength"] is None:
         config["corruption_strength"] = 1.0
     return config
+
+
+def compute_scale_and_threshold(
+    y_eval: np.ndarray,
+    y_reference: np.ndarray,
+    ratio_threshold_arg: float | None,
+) -> tuple[float, float, str, str]:
+    min_scale = 1e-12
+    eval_std = float(np.std(y_eval))
+    if y_eval.size >= 2 and eval_std > min_scale:
+        y_scale = eval_std
+        y_scale_source = "eval_std"
+    else:
+        reference_std = float(np.std(y_reference))
+        if reference_std > min_scale:
+            y_scale = reference_std
+            y_scale_source = "test_std_fallback"
+        else:
+            y_scale = float(max(np.mean(np.abs(y_reference)), min_scale))
+            y_scale_source = "abs_mean_fallback"
+
+    if ratio_threshold_arg is not None:
+        ratio_threshold = float(ratio_threshold_arg)
+        threshold_source = "user"
+    else:
+        ratio_threshold = 0.05 * y_scale
+        threshold_source = "auto_0.05_y_scale"
+    return y_scale, ratio_threshold, threshold_source, y_scale_source
+
+
+def compute_legacy_scale_and_threshold() -> tuple[float, float, str, str]:
+    return 1.0, 0.0, "legacy_disabled", "legacy_disabled"
+
+
+def format_regime_metric(summary: dict[str, Any]) -> str:
+    if summary.get("best_recovery_metric") == "recovery_score":
+        return f"{summary['best_recovery'] * 100:.2f}%"
+    if summary.get("best_recovery_metric") == "recovery_fractional_signed":
+        value = summary.get("best_recovery_fractional_signed")
+        if value is None:
+            return "n/a"
+        return f"{value * 100:.2f}%"
+    return f"{summary['best_restoration_sigma']:.3f} std"
+
+
+def format_fractional_percent(value: float | None) -> str:
+    if value is None:
+        return "n/a"
+    return f"{value * 100:.2f}%"
+
+
+def format_signed_percent(value: float | None) -> str:
+    if value is None:
+        return "n/a"
+    return f"{value * 100:.2f}%"
+
+
+def metric_for_tracker(summary: dict[str, Any], best_idx: int) -> float:
+    if summary.get("best_recovery_metric") == "recovery_score":
+        return float(summary["recovery_scores"][best_idx])
+    if summary.get("best_recovery_metric") == "recovery_fractional_signed":
+        value = summary["recovery_fractional_signed"][best_idx]
+        if value is None:
+            return 0.0
+        return float(value)
+    return float(summary["restoration_sigmas"][best_idx])
 
 
 def recommend_corrupt_idx(dataset_type: str, current_corrupt_idx):
@@ -173,6 +255,7 @@ def main():
 
     config["eval_samples"] = args.eval_samples
     config["ratio_epsilon"] = args.ratio_epsilon
+    config["metric_mode"] = args.metric_mode
     config["corrupt_idx"] = recommend_corrupt_idx(
         config.get("dataset_type", "multiplication"),
         config.get("corrupt_idx"),
@@ -212,6 +295,25 @@ def main():
 
         n_eval = max(1, min(args.eval_samples, len(X_test)))
         X_clean = X_test[:n_eval]
+        y_eval = np.asarray(y_test[:n_eval], dtype=np.float64).reshape(-1)
+        y_test_all = np.asarray(y_test, dtype=np.float64).reshape(-1)
+
+        if args.metric_mode == "legacy":
+            y_scale, ratio_threshold, threshold_source, y_scale_source = (
+                compute_legacy_scale_and_threshold()
+            )
+        else:
+            y_scale, ratio_threshold, threshold_source, y_scale_source = compute_scale_and_threshold(
+                y_eval,
+                y_test_all,
+                args.ratio_threshold,
+            )
+
+        config["y_scale"] = y_scale
+        config["y_scale_source"] = y_scale_source
+        config["ratio_threshold"] = ratio_threshold
+        config["ratio_threshold_source"] = threshold_source
+
         print(f"Test sample shape: {X_clean.shape}")
         # print(
         #     f"Test sample values: a={X_clean[0, 0]:.4f}, b={X_clean[0, 1]:.4f}, c={X_clean[0, 2]:.4f}"
@@ -243,6 +345,9 @@ def main():
             corruption_strength=config["corruption_strength"],
             patch_dim=patch_dim,
             ratio_epsilon=args.ratio_epsilon,
+            ratio_threshold=ratio_threshold,
+            y_scale=y_scale,
+            metric_mode=args.metric_mode,
         )
 
         script_path = str(Path(__file__).relative_to(Path.cwd()))
@@ -272,11 +377,11 @@ def main():
             tracker.log_patching_layer(
                 layer_idx=summary["best_layer"],
                 restoration=summary["restorations"][best_idx],
-                recovery_ratio=summary["recovery_ratios_stable"][best_idx],
+                recovery_ratio=metric_for_tracker(summary, best_idx),
             )
 
             print(
-                f"  Best score: {summary['best_recovery'] * 100:.2f}% at layer {summary['best_layer']}"
+                f"  Best metric: {format_regime_metric(summary)} at layer {summary['best_layer']}"
             )
         elif patch_dim == 1:
             for token_idx in config["tokens"]:
@@ -295,12 +400,12 @@ def main():
                 tracker.log_patching_layer(
                     layer_idx=summary["best_layer"],
                     restoration=summary["restorations"][best_idx],
-                    recovery_ratio=summary["recovery_ratios_stable"][best_idx],
+                    recovery_ratio=metric_for_tracker(summary, best_idx),
                     token_idx=token_idx,
                 )
 
                 print(
-                    f"  Best score: {summary['best_recovery'] * 100:.2f}% at layer {summary['best_layer']}"
+                    f"  Best metric: {format_regime_metric(summary)} at layer {summary['best_layer']}"
                 )
         else:
             for head_idx in config["heads"]:
@@ -319,12 +424,12 @@ def main():
                 tracker.log_patching_layer(
                     layer_idx=summary["best_layer"],
                     restoration=summary["restorations"][best_idx],
-                    recovery_ratio=summary["recovery_ratios_stable"][best_idx],
+                    recovery_ratio=metric_for_tracker(summary, best_idx),
                     head_idx=head_idx,
                 )
 
                 print(
-                    f"  Best score: {summary['best_recovery'] * 100:.2f}% at layer {summary['best_layer']}"
+                    f"  Best metric: {format_regime_metric(summary)} at layer {summary['best_layer']}"
                 )
 
         if len(all_summaries) > 1:
@@ -336,69 +441,141 @@ def main():
         print("EXPERIMENT SUMMARY")
         print("=" * 60)
         print(f"\nEvaluated samples: {n_eval}")
+        print(f"Metric mode: {args.metric_mode}")
         print(f"Stable ratio epsilon: {args.ratio_epsilon}")
+        print(f"Ratio threshold: {ratio_threshold:.6f} ({threshold_source})")
+        print(f"y scale: {y_scale:.6f} ({y_scale_source})")
         print(f"Corruption mode: {config['corruption_mode']}")
         print(f"Corruption strength: {config['corruption_strength']}")
         print(f"Corrupt idx: {config['corrupt_idx']}")
         print(f"\nClean output: {all_summaries[0]['y_clean']:.6f}")
         print(f"Corrupted output: {all_summaries[0]['y_corrupt']:.6f}")
-        clean_corrupt_diff = all_summaries[0]["y_clean"] - all_summaries[0]["y_corrupt"]
-        print(f"Clean-corrupt gap: {clean_corrupt_diff:.6f}")
+        print(
+            f"Clean-corrupt gap (signed mean): {all_summaries[0]['clean_corrupt_gaps_signed'][0]:.6f}"
+        )
+        print(
+            f"Clean-corrupt gap (abs mean): {all_summaries[0]['clean_corrupt_gap_abs_means'][0]:.6f}"
+        )
 
-        if patch_dim is None:
-            print("\nFull layer patching results:")
-            print(
-                f"{'Layer':<8} {'Best Score':<12} {'Stable Ratio':<14} {'Raw |Ratio|':<12}"
-            )
-            print("-" * 52)
-            print(
-                f"{all_summaries[0]['best_layer']:<8} "
-                f"{all_summaries[0]['best_recovery'] * 100:<11.2f}% "
-                f"{all_summaries[0]['best_recovery_stable_abs'] * 100:<13.2f}% "
-                f"{all_summaries[0]['best_recovery_raw_abs'] * 100:<11.2f}%"
-            )
-            print(
-                f"\nBest layer overall: {all_summaries[0]['best_layer']} "
-                f"({all_summaries[0]['best_recovery'] * 100:.2f}% score)"
-            )
-        elif patch_dim == 1:
-            print("\nToken-by-token results:")
-            print(
-                f"{'Token':<8} {'Best Score':<12} {'Stable Ratio':<14} {'Raw |Ratio|':<12} {'Best Layer':<12}"
-            )
-            print("-" * 72)
-            for summary in all_summaries:
+        if args.metric_mode == "legacy":
+            if patch_dim is None:
+                print("\nFull layer patching results:")
                 print(
-                    f"{summary['token_idx']:<8} "
-                    f"{summary['best_recovery'] * 100:<11.2f}% "
-                    f"{summary['best_recovery_stable_abs'] * 100:<13.2f}% "
-                    f"{summary['best_recovery_raw_abs'] * 100:<11.2f}% "
-                    f"{summary['best_layer']:<12}"
+                    f"{'Layer':<8} {'Best Score':<12} {'Stable Ratio':<14} {'Raw |Ratio|':<12}"
                 )
+                print("-" * 52)
+                print(
+                    f"{all_summaries[0]['best_layer']:<8} "
+                    f"{all_summaries[0]['best_recovery'] * 100:<11.2f}% "
+                    f"{all_summaries[0]['best_recovery_stable_abs'] * 100:<13.2f}% "
+                    f"{all_summaries[0]['best_recovery_raw_abs'] * 100:<11.2f}%"
+                )
+                print(
+                    f"\nBest layer overall: {all_summaries[0]['best_layer']} "
+                    f"({all_summaries[0]['best_recovery'] * 100:.2f}% score)"
+                )
+            elif patch_dim == 1:
+                print("\nToken-by-token results:")
+                print(
+                    f"{'Token':<8} {'Best Score':<12} {'Stable Ratio':<14} {'Raw |Ratio|':<12} {'Best Layer':<12}"
+                )
+                print("-" * 72)
+                for summary in all_summaries:
+                    print(
+                        f"{summary['token_idx']:<8} "
+                        f"{summary['best_recovery'] * 100:<11.2f}% "
+                        f"{summary['best_recovery_stable_abs'] * 100:<13.2f}% "
+                        f"{summary['best_recovery_raw_abs'] * 100:<11.2f}% "
+                        f"{summary['best_layer']:<12}"
+                    )
 
-            best_token = max(all_summaries, key=lambda x: x["best_recovery"])
-            print(
-                f"\nBest token overall: {best_token['token_idx']} ({best_token['best_recovery'] * 100:.2f}% score)"
-            )
+                best_token = max(all_summaries, key=lambda x: x["best_recovery"])
+                print(
+                    f"\nBest token overall: {best_token['token_idx']} ({best_token['best_recovery'] * 100:.2f}% score)"
+                )
+            else:
+                print("\nHead-by-head results:")
+                print(
+                    f"{'Head':<8} {'Best Score':<12} {'Stable Ratio':<14} {'Raw |Ratio|':<12} {'Best Layer':<12}"
+                )
+                print("-" * 72)
+                for summary in all_summaries:
+                    print(
+                        f"{summary['head_idx']:<8} "
+                        f"{summary['best_recovery'] * 100:<11.2f}% "
+                        f"{summary['best_recovery_stable_abs'] * 100:<13.2f}% "
+                        f"{summary['best_recovery_raw_abs'] * 100:<11.2f}% "
+                        f"{summary['best_layer']:<12}"
+                    )
+
+                best_head = max(all_summaries, key=lambda x: x["best_recovery"])
+                print(
+                    f"\nBest head overall: {best_head['head_idx']} ({best_head['best_recovery'] * 100:.2f}% score)"
+                )
         else:
-            print("\nHead-by-head results:")
-            print(
-                f"{'Head':<8} {'Best Score':<12} {'Stable Ratio':<14} {'Raw |Ratio|':<12} {'Best Layer':<12}"
-            )
-            print("-" * 72)
-            for summary in all_summaries:
+            if patch_dim is None:
+                print("\nFull layer patching results:")
                 print(
-                    f"{summary['head_idx']:<8} "
-                    f"{summary['best_recovery'] * 100:<11.2f}% "
-                    f"{summary['best_recovery_stable_abs'] * 100:<13.2f}% "
-                    f"{summary['best_recovery_raw_abs'] * 100:<11.2f}% "
-                    f"{summary['best_layer']:<12}"
+                    f"{'Layer':<8} {'Best Metric':<14} {'Rest.Abs':<10} {'Gap.Abs':<10} {'Rest.Sigma':<11} {'Frac.Signed':<12} {'Frac.Abs':<10}"
                 )
+                print("-" * 88)
+                print(
+                    f"{all_summaries[0]['best_layer']:<8} "
+                    f"{format_regime_metric(all_summaries[0]):<14} "
+                    f"{all_summaries[0]['best_restoration_abs_mean']:<10.4f} "
+                    f"{all_summaries[0]['best_clean_corrupt_gap_abs_mean']:<10.4f} "
+                    f"{all_summaries[0]['best_restoration_sigma']:<11.4f} "
+                    f"{format_signed_percent(all_summaries[0]['best_recovery_fractional_signed']):<12} "
+                    f"{format_fractional_percent(all_summaries[0]['best_recovery_fractional_abs']):<10}"
+                )
+                print(
+                    f"\nBest layer overall: {all_summaries[0]['best_layer']} "
+                    f"({all_summaries[0]['best_recovery_metric']})"
+                )
+                print(
+                    f"Fractional-valid layers (signed/abs): "
+                    f"{all_summaries[0]['fractional_signed_valid_layers']}/{all_summaries[0]['fractional_abs_valid_layers']}"
+                )
+            elif patch_dim == 1:
+                print("\nToken-by-token results:")
+                print(
+                    f"{'Token':<8} {'Best Metric':<14} {'Rest.Sigma':<11} {'Frac.Signed':<12} {'Frac.Abs':<10} {'Best Layer':<12}"
+                )
+                print("-" * 80)
+                for summary in all_summaries:
+                    print(
+                        f"{summary['token_idx']:<8} "
+                        f"{format_regime_metric(summary):<14} "
+                        f"{summary['best_restoration_sigma']:<11.4f} "
+                        f"{format_signed_percent(summary['best_recovery_fractional_signed']):<12} "
+                        f"{format_fractional_percent(summary['best_recovery_fractional_abs']):<10} "
+                        f"{summary['best_layer']:<12}"
+                    )
 
-            best_head = max(all_summaries, key=lambda x: x["best_recovery"])
-            print(
-                f"\nBest head overall: {best_head['head_idx']} ({best_head['best_recovery'] * 100:.2f}% score)"
-            )
+                best_token = max(all_summaries, key=lambda x: x["best_recovery"])
+                print(
+                    f"\nBest token overall: {best_token['token_idx']} ({best_token['best_recovery_metric']})"
+                )
+            else:
+                print("\nHead-by-head results:")
+                print(
+                    f"{'Head':<8} {'Best Metric':<14} {'Rest.Sigma':<11} {'Frac.Signed':<12} {'Frac.Abs':<10} {'Best Layer':<12}"
+                )
+                print("-" * 80)
+                for summary in all_summaries:
+                    print(
+                        f"{summary['head_idx']:<8} "
+                        f"{format_regime_metric(summary):<14} "
+                        f"{summary['best_restoration_sigma']:<11.4f} "
+                        f"{format_signed_percent(summary['best_recovery_fractional_signed']):<12} "
+                        f"{format_fractional_percent(summary['best_recovery_fractional_abs']):<10} "
+                        f"{summary['best_layer']:<12}"
+                    )
+
+                best_head = max(all_summaries, key=lambda x: x["best_recovery"])
+                print(
+                    f"\nBest head overall: {best_head['head_idx']} ({best_head['best_recovery_metric']})"
+                )
 
         if experiment.created_images:
             # Build captions for each image based on filename and context
@@ -415,17 +592,36 @@ def main():
                     caption = (
                         f"Full layer restoration - {dataset_name} - {corrupt_info}"
                     )
-                elif "head_" in filename and "restoration" in filename:
-                    # Extract head_idx from filename like "head_0_restoration_123456.png"
+                elif filename.startswith("head_") and "_restoration_" in filename:
                     head_idx = filename.split("head_")[1].split("_")[0]
                     caption = (
                         f"Head {head_idx} restoration - {dataset_name} - {corrupt_info}"
                     )
-                elif "comparison_all_heads" in filename:
-                    heads = config["heads"]
-                    caption = f"Restoration comparison across heads {heads} - {dataset_name} - {corrupt_info}"
-                elif "comparison_heatmap" in filename:
-                    caption = f"Recovery heatmap (layers x heads) - {dataset_name} - {corrupt_info}"
+                elif filename.startswith("token_") and "_restoration_" in filename:
+                    token_idx = filename.split("token_")[1].split("_")[0]
+                    caption = (
+                        f"Token {token_idx} restoration - {dataset_name} - {corrupt_info}"
+                    )
+                elif "comparison_all_" in filename:
+                    if "_heads_" in filename:
+                        heads = config["heads"]
+                        caption = f"Restoration comparison across heads {heads} - {dataset_name} - {corrupt_info}"
+                    elif "_tokens_" in filename:
+                        tokens = config["tokens"]
+                        caption = f"Restoration comparison across tokens {tokens} - {dataset_name} - {corrupt_info}"
+                    else:
+                        caption = (
+                            f"Restoration comparison across items - {dataset_name} - {corrupt_info}"
+                        )
+                elif "comparison_heatmap_" in filename:
+                    if "_heads_" in filename:
+                        caption = f"Recovery heatmap (layers x heads) - {dataset_name} - {corrupt_info}"
+                    elif "_tokens_" in filename:
+                        caption = f"Recovery heatmap (layers x tokens) - {dataset_name} - {corrupt_info}"
+                    else:
+                        caption = (
+                            f"Recovery heatmap (layers x items) - {dataset_name} - {corrupt_info}"
+                        )
                 else:
                     caption = f"{filename} - {dataset_name} - {corrupt_info}"
 
@@ -440,8 +636,33 @@ def main():
                 best_recovery=all_summaries[0]["best_recovery"],
                 best_layer=all_summaries[0]["best_layer"],
                 patch_type="full_layer",
+                metric_mode=args.metric_mode,
                 best_recovery_raw_abs=all_summaries[0]["best_recovery_raw_abs"],
                 best_recovery_stable_abs=all_summaries[0]["best_recovery_stable_abs"],
+                best_restoration_abs_mean=all_summaries[0]["best_restoration_abs_mean"],
+                best_clean_corrupt_gap_abs_mean=all_summaries[0][
+                    "best_clean_corrupt_gap_abs_mean"
+                ],
+                best_residual_abs_mean=all_summaries[0]["best_residual_abs_mean"],
+                best_restoration_sigma=all_summaries[0]["best_restoration_sigma"],
+                best_residual_sigma=all_summaries[0]["best_residual_sigma"],
+                best_recovery_fractional_abs=all_summaries[0][
+                    "best_recovery_fractional_abs"
+                ],
+                best_recovery_fractional_signed=all_summaries[0][
+                    "best_recovery_fractional_signed"
+                ],
+                best_recovery_metric=all_summaries[0]["best_recovery_metric"],
+                y_scale=y_scale,
+                y_scale_source=y_scale_source,
+                ratio_threshold=ratio_threshold,
+                ratio_threshold_source=threshold_source,
+                fractional_abs_valid_layers=all_summaries[0][
+                    "fractional_abs_valid_layers"
+                ],
+                fractional_signed_valid_layers=all_summaries[0][
+                    "fractional_signed_valid_layers"
+                ],
                 eval_samples=n_eval,
                 ratio_epsilon=args.ratio_epsilon,
             )
@@ -455,8 +676,31 @@ def main():
                 best_token=best_overall["token_idx"],
                 tokens_tested=len(config["tokens"]),
                 patch_type="tokens",
+                metric_mode=args.metric_mode,
                 best_recovery_raw_abs=best_overall["best_recovery_raw_abs"],
                 best_recovery_stable_abs=best_overall["best_recovery_stable_abs"],
+                best_restoration_abs_mean=best_overall["best_restoration_abs_mean"],
+                best_clean_corrupt_gap_abs_mean=best_overall[
+                    "best_clean_corrupt_gap_abs_mean"
+                ],
+                best_residual_abs_mean=best_overall["best_residual_abs_mean"],
+                best_restoration_sigma=best_overall["best_restoration_sigma"],
+                best_residual_sigma=best_overall["best_residual_sigma"],
+                best_recovery_fractional_abs=best_overall[
+                    "best_recovery_fractional_abs"
+                ],
+                best_recovery_fractional_signed=best_overall[
+                    "best_recovery_fractional_signed"
+                ],
+                best_recovery_metric=best_overall["best_recovery_metric"],
+                y_scale=y_scale,
+                y_scale_source=y_scale_source,
+                ratio_threshold=ratio_threshold,
+                ratio_threshold_source=threshold_source,
+                fractional_abs_valid_layers=best_overall["fractional_abs_valid_layers"],
+                fractional_signed_valid_layers=best_overall[
+                    "fractional_signed_valid_layers"
+                ],
                 eval_samples=n_eval,
                 ratio_epsilon=args.ratio_epsilon,
             )
@@ -470,8 +714,31 @@ def main():
                 best_head=best_overall["head_idx"],
                 heads_tested=len(config["heads"]),
                 patch_type="attention_heads",
+                metric_mode=args.metric_mode,
                 best_recovery_raw_abs=best_overall["best_recovery_raw_abs"],
                 best_recovery_stable_abs=best_overall["best_recovery_stable_abs"],
+                best_restoration_abs_mean=best_overall["best_restoration_abs_mean"],
+                best_clean_corrupt_gap_abs_mean=best_overall[
+                    "best_clean_corrupt_gap_abs_mean"
+                ],
+                best_residual_abs_mean=best_overall["best_residual_abs_mean"],
+                best_restoration_sigma=best_overall["best_restoration_sigma"],
+                best_residual_sigma=best_overall["best_residual_sigma"],
+                best_recovery_fractional_abs=best_overall[
+                    "best_recovery_fractional_abs"
+                ],
+                best_recovery_fractional_signed=best_overall[
+                    "best_recovery_fractional_signed"
+                ],
+                best_recovery_metric=best_overall["best_recovery_metric"],
+                y_scale=y_scale,
+                y_scale_source=y_scale_source,
+                ratio_threshold=ratio_threshold,
+                ratio_threshold_source=threshold_source,
+                fractional_abs_valid_layers=best_overall["fractional_abs_valid_layers"],
+                fractional_signed_valid_layers=best_overall[
+                    "fractional_signed_valid_layers"
+                ],
                 eval_samples=n_eval,
                 ratio_epsilon=args.ratio_epsilon,
             )

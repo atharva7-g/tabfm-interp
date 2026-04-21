@@ -66,6 +66,8 @@ def sweep_layers_for_ablation(
     ablation_type: str = "zero",
     max_layers: Optional[int] = None,
     ratio_epsilon: float = 0.05,
+    y_scale: Optional[float] = None,
+    scale_mode: str = "y_scale",
 ) -> List[Dict[str, float]]:
     model = regressor.model_
     total_layers = len(model.transformer_encoder.layers)
@@ -83,6 +85,8 @@ def sweep_layers_for_ablation(
             ablate_dim,
             ablation_type,
             ratio_epsilon,
+            y_scale,
+            scale_mode,
         )
         results.append(result)
     return results
@@ -96,6 +100,8 @@ def run_single_layer_ablation(
     ablate_dim: Optional[int] = 2,
     ablation_type: str = "zero",
     ratio_epsilon: float = 0.05,
+    y_scale: Optional[float] = None,
+    scale_mode: str = "y_scale",
 ) -> Dict[str, float]:
     model = regressor.model_
     layer = model.transformer_encoder.layers[layer_idx]
@@ -128,7 +134,15 @@ def run_single_layer_ablation(
         ablation_ratio = 0.0
 
     normal_scale = float(np.mean(np.abs(y_normal_arr)))
-    stable_denominator = max(normal_scale, ratio_epsilon)
+    if scale_mode == "legacy":
+        stable_denominator = max(normal_scale, ratio_epsilon)
+        y_scale_val = float(max(np.std(y_normal_arr), ratio_epsilon))
+    else:
+        if y_scale is not None:
+            y_scale_val = float(max(y_scale, ratio_epsilon))
+        else:
+            y_scale_val = float(max(np.std(y_normal_arr), ratio_epsilon))
+        stable_denominator = y_scale_val
     ablation_ratio_stable = ablation_effect / stable_denominator
     ablation_ratio_stable_abs = ablation_effect_abs_mean / stable_denominator
 
@@ -140,7 +154,10 @@ def run_single_layer_ablation(
         "ablation_ratio": ablation_ratio,
         "ablation_ratio_stable": ablation_ratio_stable,
         "ablation_ratio_stable_abs": ablation_ratio_stable_abs,
+        "ablation_effect_sigma": ablation_ratio_stable_abs,
+        "ablation_effect_signed_sigma": ablation_ratio_stable,
         "normal_scale": normal_scale,
+        "y_scale": y_scale_val,
         "ratio_epsilon": ratio_epsilon,
         "stable_denominator": stable_denominator,
         "layer_idx": layer_idx,

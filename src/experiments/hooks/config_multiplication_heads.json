@@ -1,7 +1,6 @@
 {
   "dataset_type": "multiplication",
   "heads": [0, 1, 2, 3],
-  "tokens": [0, 1, 2],
   "corrupt_idx": 2,
   "noise_std": 1.0,
   "corruption_mode": "gaussian_replace",
@@ -11,5 +10,5 @@
   "test_size": 0.8,
   "output_dir": "results/",
   "device": null,
-  "patch_dim": 1
+  "patch_dim": 2
 }

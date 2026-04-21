@@ -174,6 +174,9 @@ def sweep_layers(
     patch_dim: Optional[int] = 2,
     max_layers: Optional[int] = None,
     ratio_epsilon: float = 0.05,
+    ratio_threshold: Optional[float] = None,
+    y_scale: Optional[float] = None,
+    metric_mode: str = "regime",
 ) -> List[Dict[str, float]]:
     model = regressor.model_
     total_layers = len(model.transformer_encoder.layers)  # type: ignore
@@ -192,6 +195,9 @@ def sweep_layers(
             patch_indices,
             patch_dim,
             ratio_epsilon,
+            ratio_threshold,
+            y_scale,
+            metric_mode,
         )
         results.append(result)
     return results
@@ -207,6 +213,9 @@ def run_single_layer_patching(
     patch_indices: Union[int, List[int]],
     patch_dim: Optional[int] = 2,
     ratio_epsilon: float = 0.05,
+    ratio_threshold: Optional[float] = None,
+    y_scale: Optional[float] = None,
+    metric_mode: str = "regime",
 ) -> Dict[str, float]:
     model = regressor.model_
     layer_name = f"layer_{layer_idx}"
@@ -230,30 +239,92 @@ def run_single_layer_patching(
     y_corrupt_arr = np.asarray(y_corrupt, dtype=np.float64).reshape(-1)
     y_patched_arr = np.asarray(y_patched, dtype=np.float64).reshape(-1)
 
+    delta_gap_arr = y_clean_arr - y_corrupt_arr
+    delta_restoration_arr = y_patched_arr - y_corrupt_arr
+    delta_residual_arr = y_clean_arr - y_patched_arr
+
     y_clean_val = float(np.mean(y_clean_arr))
     y_corrupt_val = float(np.mean(y_corrupt_arr))
     y_patched_val = float(np.mean(y_patched_arr))
 
-    restoration = y_patched_val - y_corrupt_val
-    clean_corrupt_diff = y_clean_val - y_corrupt_val
+    restoration = float(np.mean(delta_restoration_arr))
+    restoration_abs_mean = float(np.mean(np.abs(delta_restoration_arr)))
+    clean_corrupt_diff = float(np.mean(delta_gap_arr))
+    clean_corrupt_gap_abs_mean = float(np.mean(np.abs(delta_gap_arr)))
+    residual_abs_mean = float(np.mean(np.abs(delta_residual_arr)))
+
     if abs(clean_corrupt_diff) > 1e-10:
         recovery_ratio = restoration / clean_corrupt_diff
     else:
         recovery_ratio = 0.0
+
+    ratio_threshold_val = (
+        float(ratio_threshold) if ratio_threshold is not None else float(ratio_epsilon)
+    )
+    ratio_valid_signed = abs(clean_corrupt_diff) >= ratio_threshold_val
+    ratio_valid_abs = clean_corrupt_gap_abs_mean >= ratio_threshold_val
+
+    if ratio_valid_signed:
+        recovery_fractional_signed = restoration / clean_corrupt_diff
+    else:
+        recovery_fractional_signed = None
+
+    if ratio_valid_abs:
+        recovery_fractional_abs = restoration_abs_mean / clean_corrupt_gap_abs_mean
+    else:
+        recovery_fractional_abs = None
 
     safe_denominator = max(abs(clean_corrupt_diff), ratio_epsilon)
     recovery_ratio_stable = restoration / safe_denominator
     recovery_score = 1.0 - (abs(y_patched_val - y_clean_val) / safe_denominator)
     recovery_score = float(np.clip(recovery_score, -1.0, 1.0))
 
+    if y_scale is not None:
+        y_scale_val = float(max(float(y_scale), 1e-12))
+    else:
+        y_scale_val = float(max(np.std(y_clean_arr), 1e-12))
+
+    restoration_sigma = restoration_abs_mean / y_scale_val
+    residual_sigma = residual_abs_mean / y_scale_val
+
+    low_gap_regime = not ratio_valid_signed
+    if ratio_valid_signed and recovery_fractional_signed is not None:
+        recovery_score_regime = recovery_fractional_signed
+    else:
+        recovery_score_regime = restoration_sigma
+
+    if metric_mode == "legacy":
+        recovery_primary = recovery_score
+        recovery_primary_metric = "recovery_score"
+    else:
+        recovery_primary = recovery_score_regime
+        recovery_primary_metric = (
+            "restoration_sigma" if low_gap_regime else "recovery_fractional_signed"
+        )
+
     return {
         "y_clean": y_clean_val,
         "y_corrupt": y_corrupt_val,
         "y_patched": y_patched_val,
         "restoration": restoration,
+        "restoration_abs_mean": restoration_abs_mean,
+        "clean_corrupt_gap_abs_mean": clean_corrupt_gap_abs_mean,
+        "residual_abs_mean": residual_abs_mean,
         "recovery_ratio": recovery_ratio,
         "recovery_ratio_stable": recovery_ratio_stable,
         "recovery_score": recovery_score,
+        "recovery_primary": recovery_primary,
+        "recovery_primary_metric": recovery_primary_metric,
+        "recovery_score_regime": recovery_score_regime,
+        "recovery_fractional_signed": recovery_fractional_signed,
+        "recovery_fractional_abs": recovery_fractional_abs,
+        "ratio_threshold": ratio_threshold_val,
+        "ratio_valid_signed": ratio_valid_signed,
+        "ratio_valid_abs": ratio_valid_abs,
+        "low_gap_regime": low_gap_regime,
+        "restoration_sigma": restoration_sigma,
+        "residual_sigma": residual_sigma,
+        "y_scale": y_scale_val,
         "clean_corrupt_diff": clean_corrupt_diff,
         "safe_denominator": safe_denominator,
         "n_eval_samples": int(y_clean_arr.size),
