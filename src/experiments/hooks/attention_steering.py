@@ -87,8 +87,8 @@ class AttentionSteeringExperiment(BaseExperiment):
     def steer_single_head(
         self, head_idx: int, X: np.ndarray
     ) -> Tuple[Dict, List[Dict]]:
-        """Steer a single attention head across all layers."""
-        print(f"\nSteering head {head_idx} with alpha={self.config.alpha}...")
+        """Steer a single feature block across all layers."""
+        print(f"\nSteering feature block {head_idx} with alpha={self.config.alpha}...")
 
         activation_shape = self._get_activation_shape(X)
         direction = self._create_direction(activation_shape)
@@ -121,8 +121,8 @@ class AttentionSteeringExperiment(BaseExperiment):
     def steer_multiple_heads(
         self, head_indices: List[int], X: np.ndarray
     ) -> Tuple[Dict, List[Dict]]:
-        """Steer multiple attention heads at once."""
-        print(f"\nSteering heads {head_indices} with alpha={self.config.alpha}...")
+        """Steer multiple feature blocks at once."""
+        print(f"\nSteering feature blocks {head_indices} with alpha={self.config.alpha}...")
 
         activation_shape = self._get_activation_shape(X)
         direction = self._create_direction(activation_shape)
@@ -221,8 +221,8 @@ class AttentionSteeringExperiment(BaseExperiment):
     def save_head_results(
         self, head_idx: int, summary: Dict, raw_results: List[Dict], script_path: str
     ):
-        """Save results for a single head."""
-        subdir = f"head_{head_idx}"
+        """Save results for a single feature block."""
+        subdir = f"feature_block_{head_idx}"
         self.save_results(summary, subdir, "summary", script_path)
 
         tensors = {
@@ -231,7 +231,7 @@ class AttentionSteeringExperiment(BaseExperiment):
             "steering_effects": torch.tensor(summary["steering_effects"]),
             "layer_indices": torch.tensor(summary["layer_indices"]),
         }
-        self.save_tensors(tensors, "tensors", f"head_{head_idx}")
+        self.save_tensors(tensors, "tensors", f"feature_block_{head_idx}")
 
         self._plot_single_head(summary, head_idx)
 
@@ -309,7 +309,7 @@ class AttentionSteeringExperiment(BaseExperiment):
         print(f"  Saved plot: {save_path}")
 
     def _plot_single_head(self, summary: Dict, head_idx: int):
-        """Create steering plot for a single head."""
+        """Create steering plot for a single feature block."""
         fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
 
         layer_indices = summary["layer_indices"]
@@ -320,7 +320,7 @@ class AttentionSteeringExperiment(BaseExperiment):
         ax1.axhline(y=0, color="k", linestyle="-", alpha=0.3)
         ax1.set_xlabel("Layer Index")
         ax1.set_ylabel("Steering Effect")
-        ax1.set_title(f"Head {head_idx}: Steering Effect by Layer")
+        ax1.set_title(f"Feature Block {head_idx}: Steering Effect by Layer")
         ax1.legend()
         ax1.grid(True, alpha=0.3)
 
@@ -335,13 +335,13 @@ class AttentionSteeringExperiment(BaseExperiment):
         ax2.axhline(y=0, color="k", linestyle="-", alpha=0.3)
         ax2.set_xlabel("Layer Index")
         ax2.set_ylabel("Effect %")
-        ax2.set_title(f"Head {head_idx}: Effect Ratio %")
+        ax2.set_title(f"Feature Block {head_idx}: Effect Ratio %")
         ax2.legend()
         ax2.grid(True, alpha=0.3)
 
         plt.tight_layout()
 
-        save_path = self.output_dir / f"head_{head_idx}_steering_{self.timestamp}.png"
+        save_path = self.output_dir / f"feature_block_{head_idx}_steering_{self.timestamp}.png"
         plt.savefig(save_path, dpi=150, bbox_inches="tight")
         plt.close()
         self.created_images.append(save_path)

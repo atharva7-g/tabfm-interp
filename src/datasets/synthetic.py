@@ -20,11 +20,11 @@ def register_dataset(name: str):
 def create_multiplication_dataset(
     num_samples: int = 1000, seed: int = 42
 ) -> Tuple[np.ndarray, np.ndarray]:
-    """y = a * b + c"""
+    """y = a * b + c (with c > 0 to avoid sign-cancellation in scale corruption)"""
     rng = np.random.default_rng(seed)
     a = rng.standard_normal(num_samples)
     b = rng.standard_normal(num_samples)
-    c = rng.standard_normal(num_samples)
+    c = np.abs(rng.standard_normal(num_samples))  # Force c > 0
     y = a * b + c
     X = np.stack([a, b, c], axis=1).astype(np.float32)
     return X, y.astype(np.float32)
@@ -42,6 +42,17 @@ def create_quadratic_dataset(
     y = a**2 + b**2 + c
     X = np.stack([a, b, c], axis=1).astype(np.float32)
     return X, y.astype(np.float32)
+
+
+@register_dataset("additive_4")
+def create_additive_4_dataset(
+    num_samples: int = 1000, seed: int = 42
+) -> Tuple[np.ndarray, np.ndarray]:
+    """y = x0 + x1 + x2 + x3 (simple additive with 4 features)."""
+    rng = np.random.default_rng(seed)
+    X = rng.standard_normal((num_samples, 4)).astype(np.float32)
+    y = np.sum(X, axis=1).astype(np.float32)
+    return X, y
 
 
 @register_dataset("pairwise_50")
@@ -74,6 +85,7 @@ def get_dataset_formula(dataset_type: str) -> str:
     formulas = {
         "multiplication": "y = a × b + c",
         "quadratic": "y = a² + b² + c",
+        "additive_4": "y = x[0] + x[1] + x[2] + x[3]",
         "pairwise_50": "y = Σ(x[i] × x[j]) for all feature pairs (i, j) within each sample",
     }
     return formulas.get(dataset_type, "Unknown")

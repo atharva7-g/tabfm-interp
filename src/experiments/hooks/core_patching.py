@@ -127,8 +127,9 @@ def create_patch_hook(
 
         return full_layer_hook
 
-    # patch_dim: 1=tokens (565), 2=attention heads (4)
-    # patch_indices: which token(s) or head(s) to patch (int or list of ints)
+    # patch_dim: 1=tokens (sequence positions), 2=feature blocks (4 for mult, 35 for pairwise_50)
+    # patch_indices: which token(s) or feature block(s) to patch (int or list of ints)
+    # Note: Attention heads (3 total) are ablated separately in src/experiments/attention_head_ablation/
 
     # Normalize to list for consistent handling
     if isinstance(patch_indices, int):

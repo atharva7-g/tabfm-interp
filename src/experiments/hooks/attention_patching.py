@@ -125,8 +125,8 @@ class AttentionPatchingExperiment(BaseExperiment):
     def patch_single_head(
         self, head_idx: int, X_clean: np.ndarray, X_corrupt: np.ndarray
     ) -> Tuple[Dict, List[Dict]]:
-        """Patch a single attention head across all layers."""
-        print(f"\nPatching head {head_idx}...")
+        """Patch a single feature block across all layers."""
+        print(f"\nPatching feature block {head_idx}...")
 
         results = sweep_layers(
             regressor=self.regressor,
@@ -150,8 +150,8 @@ class AttentionPatchingExperiment(BaseExperiment):
     def patch_multiple_heads(
         self, head_indices: List[int], X_clean: np.ndarray, X_corrupt: np.ndarray
     ) -> Tuple[Dict, List[Dict]]:
-        """Patch multiple attention heads at once."""
-        print(f"\nPatching heads {head_indices}...")
+        """Patch multiple feature blocks at once."""
+        print(f"\nPatching feature blocks {head_indices}...")
 
         results = sweep_layers(
             regressor=self.regressor,
@@ -250,8 +250,8 @@ class AttentionPatchingExperiment(BaseExperiment):
     def save_head_results(
         self, head_idx: int, summary: Dict, raw_results: List[Dict], script_path: str
     ):
-        """Save results for a single head."""
-        subdir = f"head_{head_idx}"
+        """Save results for a single feature block."""
+        subdir = f"feature_block_{head_idx}"
 
         # Save summary JSON
         self.save_results(summary, subdir, "summary", script_path)
@@ -266,7 +266,7 @@ class AttentionPatchingExperiment(BaseExperiment):
             "recovery_scores": torch.tensor(summary["recovery_scores"]),
             "layer_indices": torch.tensor(summary["layer_indices"]),
         }
-        self.save_tensors(tensors, "tensors", f"head_{head_idx}")
+        self.save_tensors(tensors, "tensors", f"feature_block_{head_idx}")
 
         # Create and save plot
         self._plot_single_head(summary, head_idx)
@@ -394,7 +394,7 @@ class AttentionPatchingExperiment(BaseExperiment):
         ax1.axhline(y=0, color="k", linestyle="-", alpha=0.3)
         ax1.set_xlabel("Layer Index")
         ax1.set_ylabel("Restoration")
-        ax1.set_title(f"Head {head_idx}: Restoration by Layer")
+        ax1.set_title(f"Feature Block {head_idx}: Restoration by Layer")
         ax1.legend()
         ax1.grid(True, alpha=0.3)
 
@@ -411,14 +411,14 @@ class AttentionPatchingExperiment(BaseExperiment):
         ax2.axhline(y=0, color="k", linestyle="-", alpha=0.3)
         ax2.set_xlabel("Layer Index")
         ax2.set_ylabel("Recovery %")
-        ax2.set_title(f"Head {head_idx}: Stable Recovery Ratio")
+        ax2.set_title(f"Feature Block {head_idx}: Stable Recovery Ratio")
         ax2.legend()
         ax2.grid(True, alpha=0.3)
 
         plt.tight_layout()
 
         save_path = (
-            self.output_dir / f"head_{head_idx}_restoration_{self.timestamp}.png"
+            self.output_dir / f"feature_block_{head_idx}_restoration_{self.timestamp}.png"
         )
         plt.savefig(save_path, dpi=150, bbox_inches="tight")
         plt.close()
@@ -485,8 +485,8 @@ class AttentionPatchingExperiment(BaseExperiment):
 
         if "head_idx" in all_summaries[0]:
             index_key = "head_idx"
-            label_prefix = "Head"
-            comparison_label = "heads"
+            label_prefix = "Feature Block"
+            comparison_label = "feature_blocks"
         elif "token_idx" in all_summaries[0]:
             index_key = "token_idx"
             label_prefix = "Token"
@@ -567,9 +567,9 @@ class AttentionPatchingExperiment(BaseExperiment):
             "comparison_type": comparison_label,
             "best_recovery_overall": max([s["best_recovery"] for s in all_summaries]),
         }
-        if comparison_label == "heads":
-            combined_summary["all_heads"] = all_summaries
-            combined_summary["best_head"] = best_summary["head_idx"]
+        if comparison_label == "feature_blocks":
+            combined_summary["all_feature_blocks"] = all_summaries
+            combined_summary["best_feature_block"] = best_summary["head_idx"]
         elif comparison_label == "tokens":
             combined_summary["all_tokens"] = all_summaries
             combined_summary["best_token"] = best_summary["token_idx"]
@@ -583,10 +583,10 @@ class AttentionPatchingExperiment(BaseExperiment):
 
         if "head_idx" in all_summaries[0]:
             index_key = "head_idx"
-            label_prefix = "Head"
-            x_axis_label = "Attention Head"
-            title_suffix = "Heads"
-            comparison_label = "heads"
+            label_prefix = "Feature Block"
+            x_axis_label = "Feature Block"
+            title_suffix = "Feature Blocks"
+            comparison_label = "feature_blocks"
         elif "token_idx" in all_summaries[0]:
             index_key = "token_idx"
             label_prefix = "Token"

@@ -17,3 +17,7 @@ HYPERPARAMETERS.md
 .opencode
 docs/
 /results/
+/results_*/
+posters/
+data/
+*.md
